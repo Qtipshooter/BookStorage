@@ -7,5 +7,8 @@
     "test": "node test.js"
   },
   "author": "Quinton Graham",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "mongodb": "^6.20.0"
+  }
 }
