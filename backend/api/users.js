@@ -1,3 +1,4 @@
+import { ObjectId } from "bson";
 import { mdb_connect } from "../util/db_connection.js";
 import bcrypt from "bcrypt";
 
@@ -49,26 +50,51 @@ async function register_user(username, email, password) {
     return res.insertedId;
   })
 
-  // Generate Session information
-  c_date.setDate(c_date.getDate() + 1); // Expire 1 day after sign up
-  const sessions = db.collection("sessions");
-  const session_id = await sessions.insertOne({
-    user_id: user_id,
-    expiration_date: c_date,
-  }).then((res) => {
-    return res.insertedId;
-  })
-
   // Success Payload
   return {
     success: true,
-    data: {
-      user_id: user_id,
-      session_id: session_id,
-    }
+    data: user_id,
   }
   
 }
+
+/** check_level
+ * @param {string} user_id
+ * @return {Promise<Object>}
+ */
+async function check_level(user_id) {
+  // Init
+  const db = await mdb_connect();
+  const users = db.collection("users");
+  const ob_id = ObjectId.createFromHexString(user_id);
+  const level = await users.findOne({user_id: ob_id}).then(res => {
+    if(res){
+      return res.level;
+    } 
+    else {
+      return res
+    }
+  })
+
+  if(level) {
+    return {
+      success: true,
+      data: level,
+    }
+  }
+  return {
+    success: false,
+    error_message: "User Not Found"
+  }
+
+}
+
+/** get_user
+ * Gets basic user information (administrative)
+ * @param {string} username //Username or Email
+ * @return {Promise<Object>}
+ */
+async function get_user(username) {}
 
 // ------ TEST FUNCTIONS ------ //
 
@@ -88,6 +114,8 @@ async function test_register_user() {
    * invalid username (short, long, character, numbers,), invalid email (characters, missing @, additional @,)
    */
 
+  let passing = true;
+
   // Function for reading test output regardless of outcome
   function check_test_register_user (response, pass_cond, test_num){
     if (response.success == pass_cond){
@@ -99,6 +127,7 @@ async function test_register_user() {
       }
     }
     else {
+      passing = false;
       if(response.success) {
         console.log("#" + test_num + " " + util_test_result_code("fail") + " Registered invalid user: " + response.data.user_id);
       }
@@ -148,7 +177,11 @@ async function test_register_user() {
     await register_user(tests[i].user, tests[i].email, tests[i].pass).then((res) => {check_test_register_user(res, tests[i].cond, i)});
   }
   console.log("-- Test register_user complete --");
+  return passing;
+}
 
+async function test_check_level() {
+  
 }
 
 function test_get_user() {
@@ -157,4 +190,6 @@ function test_get_user() {
 
 
 // ------ Run Tests ------ //
-await test_register_user()
+await test_register_user();
+// await test_check_level();
+// await test_get_user();
