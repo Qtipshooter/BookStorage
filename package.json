@@ -1,0 +1,11 @@
+{
+  "name": "book_storage",
+  "version": "1.0.0",
+  "description": "Stores home library information",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "author": "Quinton Graham",
+  "license": "ISC"
+}
