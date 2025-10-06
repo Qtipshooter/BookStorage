@@ -125,6 +125,34 @@ async function get_user(username) {
   }
 }
 
+/** get_users
+ * Gets basic user information (administrative)
+ * @return {Promise<Object>}
+ */
+async function get_users() {
+  // Init
+  const db = await mdb_connect(); // DB Con
+  const users = db.collection("users"); // User table
+  const proj = { hashcode: 0, } // Projection to exclude pass-hashes
+
+  // Fetch users
+  const user_col = await users.find({}, {projection: {hashcode:0}}).toArray();
+
+  // Return Payload
+  if(user_col) {
+    return {
+      success: true,
+      data: user_col,
+    }
+  }
+  else {
+    return {
+      success: false,
+      error_message: "Unknown Error"
+    }
+  }
+}
+
 // ------ TEST FUNCTIONS ------ //
 
 function util_test_result_code(result) {
@@ -227,7 +255,7 @@ async function test_get_user() {
     }
     else {
       passing = false;
-      if(response.succes) {
+      if(response.success) {
         console.log("#" + test_num + " " + util_test_result_code("fail") + " User Obtained: " + response.data.username);
       }
       else {
@@ -257,15 +285,40 @@ async function test_get_user() {
   ];
 
   // Running Tests
+  console.log("-- Testing get_user --");
   for (let i = 0; i < tests.length; i++) {
     await get_user(tests[i].username).then((res) => {check_test_get_user(res, tests[i].cond, i)});
   }
+  console.log("-- Test get_user complete --");
 
+  return passing;
+}
+
+async function test_get_users() { 
+  let passing = true;
+  
+  function check_test_get_users(response) {
+    if(response.success) {
+      console.log(util_test_result_code("pass") + " Users Found:")
+      response.data.forEach(user => {
+        console.log(JSON.stringify(user));
+      });
+    }
+    else {
+      passing = false;
+      console.log(util_test_result_code("fail") + " Users not Fetched")
+    }
+  }
+  console.log("-- Testing get_users --");
+  await get_users().then((res) => {check_test_get_users(res)});
+  console.log("-- Test get_users complete --");
+  return passing;
 }
 
 
 // ------ Run Tests ------ //
 await test_register_user();
 await test_get_user();
+await test_get_users();
 // await test_check_level();
 process.exit()
