@@ -94,7 +94,18 @@ async function check_level(user_id) {
  * @param {string} username //Username or Email
  * @return {Promise<Object>}
  */
-async function get_user(username) {}
+async function get_user(username) {
+  const isEmail = username.indexOf("@") > 0;
+  const db = await mdb_connect();
+  const users = db.collection("users");
+  const proj = { hashcode: 0, }
+  if(isEmail) {
+    return await users.findOne({primary_email: username}, {projection: proj})
+  }
+  else {
+    return await users.findOne({username: username}, {projection: proj})
+  }
+}
 
 // ------ TEST FUNCTIONS ------ //
 
