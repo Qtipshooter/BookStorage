@@ -95,15 +95,33 @@ async function check_level(user_id) {
  * @return {Promise<Object>}
  */
 async function get_user(username) {
-  const isEmail = username.indexOf("@") > 0;
-  const db = await mdb_connect();
-  const users = db.collection("users");
-  const proj = { hashcode: 0, }
+  // Init
+  const isEmail = username.indexOf("@") > 0; // Check if email
+  const db = await mdb_connect(); // DB Con
+  const users = db.collection("users"); // User table
+  const proj = { hashcode: 0, } // Projection to exclude pass-hashes
+  let user = null; // User object, not directly returned so that we have the success state
+
+  // Find the User
   if(isEmail) {
-    return await users.findOne({primary_email: username}, {projection: proj})
+    user = await users.findOne({primary_email: username}, {projection: proj})
   }
   else {
-    return await users.findOne({username: username}, {projection: proj})
+    user = await users.findOne({username: username}, {projection: proj})
+  }
+
+  // Return Payload
+  if(user) {
+    return {
+      success: true,
+      data: user,
+    }
+  }
+  else {
+    return {
+      success: false,
+      error_message: "User Not Found"
+    }
   }
 }
 
@@ -180,7 +198,7 @@ async function test_register_user() {
       pass: "more than 1 star in the sky",
       cond: true
     },
-  ]
+  ];
 
   // Running Tests
   console.log("-- Testing register_user --");
@@ -195,12 +213,59 @@ async function test_check_level() {
   
 }
 
-function test_get_user() {
+async function test_get_user() {
+  let passing = true;
+
+  function check_test_get_user(response, pass_cond, test_num) {
+    if(response.success == pass_cond) {
+      if(response.success) {
+        console.log("#" + test_num + " " + util_test_result_code("pass") + " User Obtained: " + response.data.username);
+      }
+      else {
+        console.log("#" + test_num + " " + util_test_result_code("pass") + " User not found");
+      }
+    }
+    else {
+      passing = false;
+      if(response.succes) {
+        console.log("#" + test_num + " " + util_test_result_code("fail") + " User Obtained: " + response.data.username);
+      }
+      else {
+        console.log("#" + test_num + " " + util_test_result_code("fail") + " User not found");
+      }
+    }
+  }
+
+  // Tests Array
+  const tests = [
+    {
+      username: "JohnDoe1",
+      cond: true,
+    },
+    {
+      username: "Giberish",
+      cond: false,
+    },
+    {
+      username: "john.doe@gmail.com",
+      cond: true,
+    },
+    {
+      username: "@JohnDoe1",
+      cond: false,
+    },
+  ];
+
+  // Running Tests
+  for (let i = 0; i < tests.length; i++) {
+    await get_user(tests[i].username).then((res) => {check_test_get_user(res, tests[i].cond, i)});
+  }
 
 }
 
 
 // ------ Run Tests ------ //
 await test_register_user();
+await test_get_user();
 // await test_check_level();
-// await test_get_user();
+process.exit()
