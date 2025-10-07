@@ -153,4 +153,42 @@ async function get_users() {
   }
 }
 
+/** remove_user
+ * Removes user from database and anonymizes connected data
+ * @param {string} user_id
+ * @return {Promise<Object>} 
+ */
+async function remove_user(user_id) {
+  // Init
+  const db = mdb_connect();
+  const users = db.collection("users");
+  const obj_id = ObjectId.createFromHexString(user_id);
+  
+  // TODO Anonymize data once other endpoints are created
+
+  // Removal from database
+  const result = await users.deleteOne({_id:obj_id});
+
+  if(result.acknowledged) {
+    if(result.deletedCount) {
+      return {
+        success: true,
+      }
+    }
+    else {
+      return {
+        success: false,
+        error_message: "No matching users",
+      }
+    }
+  }
+  else { // Mongo side issue
+    return {
+      success: false,
+      error_message: "Server Error",
+    }
+  }
+
+}
+
 export { register_user, check_level, get_user, get_users,}
