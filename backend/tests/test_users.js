@@ -1,16 +1,7 @@
-import * as users from "../api/users.js"
+import { util_test_result_code } from "./util_test.js";
+import {register_user, check_level, get_user, get_users,} from "../api/users.js"
 
 // ------ TEST FUNCTIONS ------ //
-
-function util_test_result_code(result) {
-  if(result == "pass") {
-    return "[\x1b[32mPass\x1b[0m]"
-  }
-  if(result == "fail") {
-    return "[\x1b[31mFail\x1b[0m]"
-  }
-  return "";
-}
 
 async function test_register_user() {
   /**Cases to write
@@ -78,7 +69,7 @@ async function test_register_user() {
   // Running Tests
   console.log("-- Testing register_user --");
   for (let i = 0; i < tests.length; i++) {
-    await users.register_user(tests[i].user, tests[i].email, tests[i].pass).then((res) => {check_test_register_user(res, tests[i].cond, i)});
+    await register_user(tests[i].user, tests[i].email, tests[i].pass).then((res) => {check_test_register_user(res, tests[i].cond, i)});
   }
   console.log("-- Test register_user complete --");
   return passing;
@@ -134,7 +125,7 @@ async function test_get_user() {
   // Running Tests
   console.log("-- Testing get_user --");
   for (let i = 0; i < tests.length; i++) {
-    await users.get_user(tests[i].username).then((res) => {check_test_get_user(res, tests[i].cond, i)});
+    await get_user(tests[i].username).then((res) => {check_test_get_user(res, tests[i].cond, i)});
   }
   console.log("-- Test get_user complete --");
 
@@ -157,15 +148,13 @@ async function test_get_users() {
     }
   }
   console.log("-- Testing get_users --");
-  await users.get_users().then((res) => {check_test_get_users(res)});
+  await get_users().then((res) => {check_test_get_users(res)});
   console.log("-- Test get_users complete --");
   return passing;
 }
 
-
-// ------ Run Tests ------ //
-await test_register_user();
-await test_get_user();
-await test_get_users();
-// await test_check_level();
-process.exit()
+export async function test_users() {
+  await test_register_user();
+  await test_get_user();
+  await test_get_users();
+}
