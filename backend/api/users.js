@@ -160,7 +160,7 @@ async function get_users() {
  */
 async function remove_user(user_id) {
   // Init
-  const db = mdb_connect();
+  const db = await mdb_connect();
   const users = db.collection("users");
   const obj_id = ObjectId.createFromHexString(user_id);
   

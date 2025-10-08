@@ -164,7 +164,7 @@ async function test_remove_user() {
     }
   })
 
-  const result = await remove_user(ObjectId.createFromHexString(user_id)).then((res) => {
+  const result = await remove_user(user_id.toString()).then((res) => {
     if (res.success) {
       console.log(util_test_result_code("pass") + " User Removed");
       return true;
