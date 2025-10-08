@@ -191,4 +191,4 @@ async function remove_user(user_id) {
 
 }
 
-export { register_user, check_level, get_user, get_users,}
+export { register_user, check_level, get_user, get_users, remove_user, }

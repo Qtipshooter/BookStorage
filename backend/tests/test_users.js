@@ -1,5 +1,6 @@
 import { util_test_result_code } from "./util_test.js";
-import {register_user, check_level, get_user, get_users,} from "../api/users.js"
+import {register_user, check_level, get_user, get_users, remove_user,} from "../api/users.js"
+import { ObjectId } from "bson";
 
 // ------ TEST FUNCTIONS ------ //
 
@@ -153,8 +154,33 @@ async function test_get_users() {
   return passing;
 }
 
+async function test_remove_user() {
+  const user_id = await get_user("JohnDoe1").then((res) => {
+    if(res.success) {
+      return res.data._id;
+    }
+    else {
+      return null;
+    }
+  })
+
+  const result = await remove_user(ObjectId.createFromHexString(user_id)).then((res) => {
+    if (res.success) {
+      console.log(util_test_result_code("pass") + " User Removed");
+      return true;
+    } else {
+      console.log(util_test_result_code("fail") + " Error: " + res.error_message);
+      return false;
+    }
+  })
+
+  return result;
+}
+
+//tests 
 export async function test_users() {
   await test_register_user();
   await test_get_user();
   await test_get_users();
+  await test_remove_user();
 }
