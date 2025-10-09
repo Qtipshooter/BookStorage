@@ -16,7 +16,7 @@ async function test_register_user() {
   function check_test_register_user (response, pass_cond, test_num){
     if (response.success == pass_cond){
       if(response.success) {
-        console.log("#" + test_num + " " + util_test_result_code("pass") + " Registered UserID: " + response.data.user_id);
+        console.log("#" + test_num + " " + util_test_result_code("pass") + " Registered UserID: " + response.data);
       }
       else {
         console.log("#" + test_num + " " + util_test_result_code("pass") + " Failed to enter user, message: " + response.error_message);
