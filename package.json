@@ -5,15 +5,18 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "node test.js"
+    "test": "set NODE_ENV=.test&&node test.js",
+    "build": "",
+    "run_prod": "",
+    "run_dev": "",
+    "seed_prod": "",
+    "seed_dev": ""
   },
   "author": "Quinton Graham",
   "license": "ISC",
   "dependencies": {
     "bcrypt": "^6.0.0",
+    "dotenv": "16.6.1",
     "mongodb": "^6.20.0"
-  },
-  "devDependencies": {
-    "dotenv": "^17.2.3"
   }
 }

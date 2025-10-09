@@ -1,4 +1,4 @@
 data/db
-.env
+.env*
 node_modules
 local*
