@@ -165,7 +165,18 @@ async function remove_user(user_id) {
   // Init
   const db = await mdb_connect();
   const users = db.collection("users");
-  const obj_id = ObjectId.createFromHexString(user_id);
+  let obj_id;
+
+  // Catch invalid user_id supplied errors
+  try {
+    obj_id = ObjectId.createFromHexString(user_id);
+  }
+  catch (err) {
+    return {
+      success: false,
+      error_message: "User Id must be supplied"
+    }
+  }
   
   // TODO Anonymize data once other endpoints are created
 

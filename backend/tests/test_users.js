@@ -242,7 +242,7 @@ async function test_remove_user() {
   function check_test_remove_user(response, pass_cond, test_num) {
     if(response.success == pass_cond) {
       if(response.success) {
-        console.log("#" + test_num + " " + util_test_result_code("pass") + " User Deleted: " + response.data.display_name);
+        console.log("#" + test_num + " " + util_test_result_code("pass") + " User Deleted");
       }
       else {
         console.log("#" + test_num + " " + util_test_result_code("pass") + " Error Deleting User: " + response.error_message);
@@ -272,8 +272,7 @@ async function test_remove_user() {
   for (let i = 0; i < usernames.length; i++) {
     let user = await get_user(usernames[i]);
     if(user.success) {
-      test_cases[i].user_id = user._id;
-      test_cases[i].cond = true;
+      test_cases.push({user_id: user.data._id.toString(), cond: true});
     }
   }
 
