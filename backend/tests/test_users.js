@@ -114,7 +114,7 @@ async function test_get_user() {
       cond: false,
     },
     {
-      username: "john.doe@gmail.com",
+      username: "john.doe@email.com",
       cond: true,
     },
     {
