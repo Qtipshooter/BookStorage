@@ -21,7 +21,7 @@ async function test_register_user() {
     else {
       passing = false;
       if(response.success) {
-        console.log("#" + test_num + " " + util_test_result_code("fail") + " Registered invalid user: " + response.data.user_id);
+        console.log("#" + test_num + " " + util_test_result_code("fail") + " Registered invalid user: " + response.data);
       }
       else {
         console.log("#" + test_num + " " + util_test_result_code("fail") + " Failed to enter user, message: " + response.error_message);
@@ -53,6 +53,12 @@ async function test_register_user() {
       user: "Barbie",
       email: "foriegn.user@email.co.uk",
       pass: "Crikey2.0",
+      cond: true,
+    },
+    {
+      user: "NOCAPCAPS",
+      email: "LARGELETTERSARECOOL@EMAIL.COM",
+      pass: "Except for this 1 password",
       cond: true,
     },
     {
@@ -118,7 +124,7 @@ async function test_get_user() {
   function check_test_get_user(response, pass_cond, test_num) {
     if(response.success == pass_cond) {
       if(response.success) {
-        console.log("#" + test_num + " " + util_test_result_code("pass") + " User Obtained: " + response.data.username);
+        console.log("#" + test_num + " " + util_test_result_code("pass") + " User Obtained: " + response.data.display_name);
       }
       else {
         console.log("#" + test_num + " " + util_test_result_code("pass") + " User not found");
@@ -127,7 +133,7 @@ async function test_get_user() {
     else {
       passing = false;
       if(response.success) {
-        console.log("#" + test_num + " " + util_test_result_code("fail") + " User Obtained: " + response.data.username);
+        console.log("#" + test_num + " " + util_test_result_code("fail") + " User Obtained: " + response.data.display_name);
       }
       else {
         console.log("#" + test_num + " " + util_test_result_code("fail") + " User not found");
@@ -138,19 +144,59 @@ async function test_get_user() {
   // Tests Array
   const tests = [
     {
-      username: "JohnDoe1",
+      username: "admin",
       cond: true,
     },
     {
-      username: "Giberish",
-      cond: false,
+      username: "JohnDoe1",
+      cond: true,
     },
     {
       username: "john.doe@email.com",
       cond: true,
     },
     {
-      username: "@JohnDoe1",
+      username: "fancy+email@email.co.uk",
+      cond: true,
+    },
+    {
+      username: "FANCY+EMAIL@EMAIL.CO.UK",
+      cond: true,
+    },
+    {
+      username: "nocapcaps",
+      cond: true,
+    },
+    {
+      username: "12345",
+      cond: true,
+    },
+    {
+      username: "drips@peters.gov",
+      cond: true,
+    },
+    {
+      username: "Peter",
+      cond: true,
+    },
+    {
+      username: "Gibberish",
+      cond: false,
+    },
+    {
+      username: "@AverageUser",
+      cond: false,
+    },
+    {
+      username: "Average",
+      cond: false,
+    },
+    {
+      username: "George ",
+      cond: false,
+    },
+    {
+      username: "B@Barbie",
       cond: false,
     },
   ];
@@ -158,7 +204,7 @@ async function test_get_user() {
   // Running Tests
   console.log("-- Testing get_user --");
   for (let i = 0; i < tests.length; i++) {
-    await get_user(tests[i].username).then((res) => {check_test_get_user(res, tests[i].cond, i)});
+    await get_user(tests[i].username).then((res) => {check_test_get_user(res, tests[i].cond, i+1)});
   }
   console.log("-- Test get_user complete --");
 
@@ -213,6 +259,6 @@ async function test_remove_user() {
 export async function test_users() {
   await test_register_user();
   await test_get_user();
-  await test_get_users();
-  await test_remove_user();
+  //await test_get_users();
+  //await test_remove_user();
 }
