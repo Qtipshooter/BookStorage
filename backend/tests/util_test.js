@@ -40,6 +40,7 @@ export async function util_seed_test_database() {
   const create_date = new Date();
   const users = [
     {
+      display_name: "admin",
       username: "admin",
       primary_email: "admin@admin.com",
       hashcode: "$2b$12$XWYDiTIWlBQJt6rPutIrr.MP4Te4nrgfLqs2C9tjMQwCoI5FCNRvS",
@@ -47,6 +48,7 @@ export async function util_seed_test_database() {
       level: "admin"
     },
     {
+      display_name: "dev",
       username: "dev",
       primary_email: "dev@admin.com",
       hashcode: "$2b$12$xPrENs.TSMlkTsUO58xNSeSdjOMIvb.07qjII28Rgs/3wctKqIwp6",
@@ -54,43 +56,49 @@ export async function util_seed_test_database() {
       level: "admin"
     },
     {
-      username: "JohnDoe1",
+      display_name: "JohnDoe1",
+      username: "johndoe1",
       primary_email: "john.doe@email.com",
       hashcode: "$2b$12$COqGkMrJB2X.VkG6cqrinu3KMG2eg3AJO0RI3xp08IxO3siA8lcCG",
       created_date: create_date,
       level: "user"
     },
     {
-      username: "Jane_Doe",
-      primary_email: "Jane.doe@email.com",
+      display_name: "Jane_Doe",
+      username: "jane_doe",
+      primary_email: "jane.doe@email.com",
       hashcode: "$2b$12$Dc1GN4WHAB/vgk/P3O0ueeXhOeexcsrzfqpJu12rfsHwDgUyp3Eeu",
       created_date: create_date,
       level: "user"
     },
     {
-      username: "Sara_Codes",
+      display_name: "Sara_Codes",
+      username: "sara_codes",
       primary_email: "fancy+email@email.co.uk",
       hashcode: "$2b$12$u8gQfSuADBuhI1N2GmAQtOTvrVyPu/INgNwxo.AbH85jpuPHDDm7e",
       created_date: create_date,
       level: "user"
     },
     {
-      username: "Sagar0cean",
+      display_name: "Sagar0cean",
+      username: "sagar0cean",
       primary_email: "0cean@email.com",
       hashcode: "$2b$12$.TB0PCDmrVqP1NsHhAoEYu/NbT2UyloGdyU8CdjH.Es0uL3dSlXui",
       created_date: create_date,
       level: "user"
     },
     {
-      username: "PETER",
-      primary_email: "DRIPS@PETERS.GOV",
+      display_name: "PETER",
+      username: "peter",
+      primary_email: "drips@peters.gov",
       hashcode: "$2b$12$.BqF7SUOBPzCKVVu8pVuSeVv.Qu8pI7uDgwoKRR66PW.QAegUKMTi",
       created_date: create_date,
       level: "user"
     },
     {
-      username: "George",
-      primary_email: "YellowHat@man.com",
+      display_name: "George",
+      username: "george",
+      primary_email: "yellowhat@man.com",
       hashcode: "$2b$12$KnKB47Gk.JmmWCCyiohqzOvI8ok8bQVgVRL85AN5AmLuq4gv5aHT.",
       created_date: create_date,
       level: "user"

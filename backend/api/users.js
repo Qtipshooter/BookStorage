@@ -27,8 +27,8 @@ async function register_user(username, email, password) {
   if (!password.match(pass_regex)) { err_msg = "Password does not meet length or complexity requirements"; invalid_registration = true; }
 
   // Already in use checks
-  if (await users.findOne({username: username})) { err_msg = "Username in use"; invalid_registration = true;}
-  if (await users.findOne({primary_email: email})) { err_msg = "Email in use"; invalid_registration = true;}
+  if (await users.findOne({username: username.toLowerCase()})) { err_msg = "Username in use"; invalid_registration = true;}
+  if (await users.findOne({primary_email: email.toLowerCase()})) { err_msg = "Email in use"; invalid_registration = true;}
 
   // Response is illegal, Return
   if (invalid_registration) {
@@ -39,10 +39,13 @@ async function register_user(username, email, password) {
   }
 
   // Checks complete, insert
+  // NOTE TO SELF: Display name is stored seperately due to the size concern 
+  // being less than the performance concern when searching at scale.
   const passhash = await bcrypt.hash(password, 12);
   const user_id = await users.insertOne({
-    username: username,
-    primary_email: email,
+    display_name: username,
+    username: username.toLowerCase(),
+    primary_email: email.toLowerCase(),
     hashcode: passhash,
     created_date: c_date,
     level: "user"
@@ -104,10 +107,10 @@ async function get_user(username) {
 
   // Find the User
   if(isEmail) {
-    user = await users.findOne({primary_email: username}, {projection: proj})
+    user = await users.findOne({primary_email: username.toLowerCase()}, {projection: proj})
   }
   else {
-    user = await users.findOne({username: username}, {projection: proj})
+    user = await users.findOne({username: username.toLowerCase()}, {projection: proj})
   }
 
   // Return Payload
