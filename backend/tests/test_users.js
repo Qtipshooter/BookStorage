@@ -233,32 +233,71 @@ async function test_get_users() {
 }
 
 async function test_remove_user() {
-  const user_id = await get_user("JohnDoe1").then((res) => {
-    if(res.success) {
-      return res.data._id;
+
+  // Init
+  let passing = true;
+  let test_cases = [];
+
+  // Test callback
+  function check_test_remove_user(response, pass_cond, test_num) {
+    if(response.success == pass_cond) {
+      if(response.success) {
+        console.log("#" + test_num + " " + util_test_result_code("pass") + " User Deleted: " + response.data.display_name);
+      }
+      else {
+        console.log("#" + test_num + " " + util_test_result_code("pass") + " Error Deleting User: " + response.error_message);
+      }
     }
     else {
-      return null;
+      passing = false;
+      if(response.success) {
+        console.log("#" + test_num + " " + util_test_result_code("fail") + " Deleted User??");
+      }
+      else {
+        console.log("#" + test_num + " " + util_test_result_code("fail") + " Error Deleting User: " + response.error_message);
+      }
     }
-  })
+  }
 
-  const result = await remove_user(user_id.toString()).then((res) => {
-    if (res.success) {
-      console.log(util_test_result_code("pass") + " User Removed");
-      return true;
-    } else {
-      console.log(util_test_result_code("fail") + " Error: " + res.error_message);
-      return false;
+  // Usernames to find IDs of valid users
+  const usernames = [
+    "dev", "Jane_Doe", "fancy+email@email.co.uk", "12345", "averageuser", "NOCAPCAPS",
+  ]
+  // Usernames/IDs for invalid testing
+  const invalids = [
+    "administrator", "johndoe1", "@@@@@\@@", "68e97b013b88d8b26278d3e7",
+  ]
+
+  // Get user_ids for valid users, then send to deletion
+  for (let i = 0; i < usernames.length; i++) {
+    let user = await get_user(usernames[i]);
+    if(user.success) {
+      test_cases[i].user_id = user._id;
+      test_cases[i].cond = true;
     }
-  })
+  }
 
-  return result;
+  // Insert invalid tests
+  for (let i = 0; i < invalids.length; i++) {
+    test_cases.push({user_id: invalids[i], cond: false});
+  }
+
+  // Run tests
+
+  // Running Tests
+  console.log("-- Testing remove_user --");
+  for (let i = 0; i < test_cases.length; i++) {
+    await remove_user(test_cases[i].user_id).then((res) => {check_test_remove_user(res, test_cases[i].cond, i+1)});
+  }
+  console.log("-- Test remove_user complete --");
+
+  return passing;
 }
 
 //tests 
 export async function test_users() {
   await test_register_user();
   await test_get_user();
-  //await test_get_users();
-  //await test_remove_user();
+  await test_get_users();
+  await test_remove_user();
 }
