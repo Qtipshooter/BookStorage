@@ -5,11 +5,7 @@ import { ObjectId } from "bson";
 // ------ TEST FUNCTIONS ------ //
 
 async function test_register_user() {
-  /**Cases to write
-   * successful normal user, duplicate of first user (1 for username, 1 for email),
-   * invalid username (short, long, character, numbers,), invalid email (characters, missing @, additional @,)
-   */
-
+  
   let passing = true;
 
   // Function for reading test output regardless of outcome
@@ -36,41 +32,77 @@ async function test_register_user() {
   // Tests Array
   const tests = [
     {
-      user: "JohnDoe1",
-      email: "john.doe@gmail.com",
-      pass: "Password123",
-      cond: true
+      user: "12345",
+      email: "12345@email.com",
+      pass: "Password1",
+      cond: true,
     },
     {
-      user: "JaneDoe1",
-      email: "jane.doe@gmail.com",
-      pass: "asdfghjkl;'1234567890",
-      cond: true
+      user: "AverageUser",
+      email: "average.user@email.com",
+      pass: "Sem1$ecure",
+      cond: true,
     },
     {
-      user: "JohnDoe",
-      email: "johnathan.doe@geeeze.com",
-      pass: "!@#$%^&*()_+~{}|:\"<>,./;']\\\"aB1", // Inputed Password: !@#$%^&*()_+~{}|:"<>,./;']\"aB1
-      cond: true
+      user: "Sagar",
+      email: "savy.user@email.com",
+      pass: "Pass 2 spaces!",
+      cond: true,
     },
     {
-      user: "Bobby@Tables",
-      email: "drop+table_child.wah@delete.ahh",
-      pass: "Delete It All!",
-      cond: false
+      user: "Barbie",
+      email: "foriegn.user@email.co.uk",
+      pass: "Crikey2.0",
+      cond: true,
     },
     {
-      user: "Sky",
-      email: "so.ar@gmail.com",
-      pass: "more than 1 star in the sky",
-      cond: true
+      user: "AverageUser",
+      email: "placeholder@email.com",
+      pass: "Password1",
+      cond: false,
+    },
+    {
+      user: "Placeholder",
+      email: "average.user@email.com",
+      pass: "Password1",
+      cond: false,
+    },
+    {
+      user: "A",
+      email: "a@a.a",
+      pass: "Password1",
+      cond: false,
+    },
+    {
+      user: "Norman",
+      email: "norm@email.com",
+      pass: "password",
+      cond: false,
+    },
+    {
+      user: "Norman2",
+      email: "norm2@email.com",
+      pass: "Password",
+      cond: false,
+    },
+    {
+      user: "Norman3",
+      email: "norm3@email.com",
+      pass: "12345678",
+      cond: false,
+    },
+    {
+      user: "Norman4",
+      email: "norm4@email.com",
+      pass: "Pass2",
+      cond: false,
     },
   ];
 
   // Running Tests
   console.log("-- Testing register_user --");
   for (let i = 0; i < tests.length; i++) {
-    await register_user(tests[i].user, tests[i].email, tests[i].pass).then((res) => {check_test_register_user(res, tests[i].cond, i)});
+    await register_user(tests[i].user, tests[i].email, tests[i].pass).then((res) => {check_test_register_user(res, tests[i].cond, i+1)});
   }
   console.log("-- Test register_user complete --");
   return passing;
