@@ -116,6 +116,58 @@ async function test_register_user() {
 
 async function test_check_level() {
   
+  // Init
+  let passing = true;
+  let test_cases = [];
+
+  // Callback checks
+  function check_test_check_level(response, pass_cond, test_num) {
+    if(response.success == pass_cond) {
+      if(response.success) {
+        console.log("#" + test_num + " " + util_test_result_code("pass") + " User level: " + response.data);
+      }
+      else {
+        console.log("#" + test_num + " " + util_test_result_code("pass") + " Error: " + response.error_message);
+      }
+    }
+    else {
+      passing = false;
+      if(response.success) {
+        console.log("#" + test_num + " " + util_test_result_code("fail") + " User level: " + response.data);
+      }
+      else {
+        console.log("#" + test_num + " " + util_test_result_code("fail") + " Error: " + response.error_message);
+      }
+    }
+  }
+
+  // Usernames to find IDs of valid users
+  const usernames = [
+    "admin", "dev", "Jane_Doe", "fancy+email@email.co.uk"
+  ]
+  // Usernames/IDs for invalid testing
+  const invalids = [
+    "administrator", "johndoe1", "@@@@@\@@", "68e97b013b88d8b26278d3e7",
+  ]
+
+  // Get user_ids for valid users
+  for (let i = 0; i < usernames.length; i++) {
+    let user = await get_user(usernames[i]);
+    if(user.success) {
+      test_cases.push({user_id: user.data._id.toString(), cond: true});
+    }
+  }
+
+  // Insert invalid tests
+  for (let i = 0; i < invalids.length; i++) {
+    test_cases.push({user_id: invalids[i], cond: false});
+  }
+
+  console.log("-- Testing check_level --");
+  for (let i = 0; i < test_cases.length; i++) {
+    await check_level(test_cases[i].user_id).then((res) => {check_test_check_level(res, test_cases[i].cond, i+1)});
+  }
+  console.log("-- Test check_level complete --");
 }
 
 async function test_get_user() {
@@ -281,8 +333,6 @@ async function test_remove_user() {
     test_cases.push({user_id: invalids[i], cond: false});
   }
 
-  // Run tests
-
   // Running Tests
   console.log("-- Testing remove_user --");
   for (let i = 0; i < test_cases.length; i++) {
@@ -298,5 +348,6 @@ export async function test_users() {
   await test_register_user();
   await test_get_user();
   await test_get_users();
+  await test_check_level();
   await test_remove_user();
 }
