@@ -122,7 +122,7 @@ async function authorize_user(username, password) {
     user = await users.findOne({primary_email: username});
   }
   else {
-    user = await users.findOne({username: username});
+    user = await users.findOne({username: username.toLowerCase()});
   }
 
   // Check Hash
@@ -264,4 +264,11 @@ async function remove_user(user_id) {
 
 }
 
-export { register_user, check_level, get_user, get_users, remove_user, }
+export {
+  register_user,
+  check_level,
+  get_user,
+  get_users,
+  remove_user,
+  authorize_user,
+}

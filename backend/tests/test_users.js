@@ -1,5 +1,5 @@
 import { util_test_result_code } from "./util_test.js";
-import {register_user, check_level, get_user, get_users, remove_user,} from "../api/users.js"
+import {register_user, check_level, get_user, get_users, remove_user, authorize_user} from "../api/users.js"
 import { ObjectId } from "bson";
 
 // ------ TEST FUNCTIONS ------ //
@@ -112,6 +112,111 @@ async function test_register_user() {
   }
   console.log("-- Test register_user complete --");
   return passing;
+}
+
+async function test_authorize_user() {
+    // Init
+  let passing = true;
+
+  // Callback checks
+  function check_test_authorize_user(response, pass_cond, test_num) {
+    if(response.success == pass_cond) {
+      if(response.success) {
+        console.log("#" + test_num + " " + util_test_result_code("pass") + " Authorized User ID: " + response.data);
+      }
+      else {
+        console.log("#" + test_num + " " + util_test_result_code("pass") + " Error: " + response.error_message);
+      }
+    }
+    else {
+      passing = false;
+      if(response.success) {
+        console.log("#" + test_num + " " + util_test_result_code("fail") + " Authorized User ID: " + response.data);
+      }
+      else {
+        console.log("#" + test_num + " " + util_test_result_code("fail") + " Error: " + response.error_message);
+      }
+    }
+  }
+
+  const test_cases = [
+    {
+      user: "JohnDoe1",
+      pass: "Password1",
+      cond: true,
+    },
+    {
+      user: "Jane_Doe",
+      pass: "H4rd3rP@55word",
+      cond: true,
+    },
+    {
+      user: "Sara_Codes",
+      pass: "Password with 3 spaces.",
+      cond: true,
+    },
+    {
+      user: "0cean@email.com",
+      pass: "!?or?!Shebang2",
+      cond: true,
+    },
+    {
+      user: "savy.user@email.com",
+      pass: "Pass 2 spaces!",
+      cond: true,
+    },
+    {
+      user: "JohnDoe1",
+      pass: " Password1",
+      cond: false,
+    },
+    {
+      user: "NonExistantUser",
+      pass: "AnyPassword2",
+      cond: false,
+    },
+    {
+      user: "nonexistant@email.com",
+      pass: "AnyPassword3",
+      cond: false,
+    },
+    {
+      user: "admin",
+      pass: "{$ne:1}",
+      cond: false,
+    },
+    {
+      user: "admin",
+      pass: "$ne:1",
+      cond: false,
+    },
+    {
+      user: "$ne:1",
+      pass: "$ne:1",
+      cond: false,
+    },
+    {
+      user: "{$ne:1}",
+      pass: "{$ne:1}",
+      cond: false,
+    },
+    {
+      user: "\$ne:1",
+      pass: "\$ne:1",
+      cond: false,
+    },
+    {
+      user: "\{\$ne:1\}",
+      pass: "\{\$ne:1\}",
+      cond: false,
+    },
+  ]
+
+  console.log("-- Testing authorize_user --");
+  for (let i = 0; i < test_cases.length; i++) {
+    await authorize_user(test_cases[i].user, test_cases[i].pass).then((res) => {check_test_authorize_user(res, test_cases[i].cond, i+1)});
+  }
+  console.log("-- Test authorize_user complete --");
 }
 
 async function test_check_level() {
@@ -348,6 +453,7 @@ export async function test_users() {
   await test_register_user();
   await test_get_user();
   await test_get_users();
+  await test_authorize_user();
   await test_check_level();
   await test_remove_user();
 }
