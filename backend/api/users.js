@@ -20,15 +20,15 @@ async function register_user(username, email, password) {
   let err_msg = ""; // Return message in payload on error
   let invalid_registration = false; // For checking to send back invalid response
   const c_date = new Date(); // Creation Timestamp
-  
+
   // Legal entry checks
   if (!username.match(username_regex)) { err_msg = "Username contains illegal characters or length is invalid"; invalid_registration = true; }
   if (!email.match(email_regex)) { err_msg = "Email is invalid"; invalid_registration = true; }
   if (!password.match(pass_regex)) { err_msg = "Password does not meet length or complexity requirements"; invalid_registration = true; }
 
   // Already in use checks
-  if (await users.findOne({username: username.toLowerCase()})) { err_msg = "Username in use"; invalid_registration = true;}
-  if (await users.findOne({primary_email: email.toLowerCase()})) { err_msg = "Email in use"; invalid_registration = true;}
+  if (await users.findOne({ username: username.toLowerCase() })) { err_msg = "Username in use"; invalid_registration = true; }
+  if (await users.findOne({ primary_email: email.toLowerCase() })) { err_msg = "Email in use"; invalid_registration = true; }
 
   // Response is illegal, Return
   if (invalid_registration) {
@@ -49,7 +49,7 @@ async function register_user(username, email, password) {
     hashcode: passhash,
     created_date: c_date,
     level: "user"
-  }).then( (res) => {
+  }).then((res) => {
     return res.insertedId;
   })
 
@@ -58,7 +58,7 @@ async function register_user(username, email, password) {
     success: true,
     data: user_id,
   }
-  
+
 }
 
 /** check_level
@@ -70,16 +70,18 @@ async function check_level(user_id) {
   const db = await mdb_connect();
   const users = db.collection("users");
   const ob_id = ObjectId.createFromHexString(user_id);
-  const level = await users.findOne({user_id: ob_id}).then(res => {
-    if(res){
-      return res.level;
-    } 
-    else {
-      return res
+  let level;
+  try {
+    level = await users.findOne({ user_id: ob_id }).then(res => { return res ? res.level : res; })
+  }
+  catch (err) {
+    return {
+      success: false,
+      error_message: "User Id must be supplied"
     }
-  })
+  }
 
-  if(level) {
+  if (level) {
     return {
       success: true,
       data: level,
@@ -106,15 +108,15 @@ async function get_user(username) {
   let user = null; // User object, not directly returned so that we have the success state
 
   // Find the User
-  if(isEmail) {
-    user = await users.findOne({primary_email: username.toLowerCase()}, {projection: proj})
+  if (isEmail) {
+    user = await users.findOne({ primary_email: username.toLowerCase() }, { projection: proj })
   }
   else {
-    user = await users.findOne({username: username.toLowerCase()}, {projection: proj})
+    user = await users.findOne({ username: username.toLowerCase() }, { projection: proj })
   }
 
   // Return Payload
-  if(user) {
+  if (user) {
     return {
       success: true,
       data: user,
@@ -139,10 +141,10 @@ async function get_users() {
   const proj = { hashcode: 0, } // Projection to exclude pass-hashes
 
   // Fetch users
-  const user_col = await users.find({}, {projection: {hashcode:0}}).toArray();
+  const user_col = await users.find({}, { projection: { hashcode: 0 } }).toArray();
 
   // Return Payload
-  if(user_col) {
+  if (user_col) {
     return {
       success: true,
       data: user_col,
@@ -177,14 +179,14 @@ async function remove_user(user_id) {
       error_message: "User Id must be supplied"
     }
   }
-  
+
   // TODO Anonymize data once other endpoints are created
 
   // Removal from database
-  const result = await users.deleteOne({_id:obj_id});
+  const result = await users.deleteOne({ _id: obj_id });
 
-  if(result.acknowledged) {
-    if(result.deletedCount) {
+  if (result.acknowledged) {
+    if (result.deletedCount) {
       return {
         success: true,
       }
