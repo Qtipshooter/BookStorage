@@ -103,6 +103,54 @@ async function check_level(user_id) {
 
 }
 
+/** authorize_user
+ * Verifies login information
+ * @param {string} username
+ * @param {string} password
+ * @return {Promise<Object>}
+ */
+async function authorize_user(username, password) {
+  // Init
+  const isEmail = username.indexOf("@") > 0; // Check if email
+  const db = await mdb_connect(); // DB Con
+  const users = db.collection("users"); // User Table
+  let user;
+  let authenticated = false;
+  
+  // Get User
+  if(isEmail) {
+    user = await users.findOne({primary_email: username});
+  }
+  else {
+    user = await users.findOne({username: username});
+  }
+
+  // Check Hash
+  if(user) {
+    authenticated = await bcrypt.compare(password, user.hashcode);
+  }
+  else {
+    return {
+      success: false,
+      error_message: "User not found"
+    }
+  }
+
+  // Return payload
+  if(authenticated) {
+    return {
+      success: true,
+      data: user._id.toString()
+    }
+  }
+  else {
+    return {
+      success: false,
+      error_message: "Invalid Password"
+    }
+  }
+}
+
 /** get_user
  * Gets basic user information (administrative)
  * @param {string} username //Username or Email
