@@ -1,4 +1,4 @@
-import { ObjectId } from "bson";
+import { ObjectId } from "mongodb";
 import { mdb_connect } from "../util/db_connection.js";
 import bcrypt from "bcrypt";
 
@@ -69,10 +69,9 @@ async function check_level(user_id) {
   // Init
   const db = await mdb_connect();
   const users = db.collection("users");
-  const ob_id = ObjectId.createFromHexString(user_id);
-  let level;
+  let ob_id;
   try {
-    level = await users.findOne({ user_id: ob_id }).then(res => { return res ? res.level : res; })
+    ob_id = ObjectId.createFromHexString(user_id);  
   }
   catch (err) {
     return {
@@ -80,6 +79,16 @@ async function check_level(user_id) {
       error_message: "User Id must be supplied"
     }
   }
+
+  const level = await users.findOne({ _id: ob_id }).then((res) => { 
+    if(res) {
+      return res.level;
+    }
+    else {
+      return res;
+    }
+   })
+
 
   if (level) {
     return {
