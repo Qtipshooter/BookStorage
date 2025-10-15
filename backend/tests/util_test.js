@@ -1,9 +1,13 @@
 import dotenv from "dotenv"
-import { MongoClient, ObjectId } from "mongodb";
+import { MongoClient } from "mongodb";
 dotenv.config({path: ".env.test"});
 
-// Used for test formatting
-export function util_test_result_code(result) {
+/** util_test_result_code
+ * Colors and formats the result code identifier
+ * @param {string} result pass | fail | info
+ * @returns {string}
+ */
+function util_test_result_code(result) {
   if(result == "pass") {
     return "[\x1b[32mPass\x1b[0m]"
   }
@@ -16,7 +20,10 @@ export function util_test_result_code(result) {
   return "";
 }
 
-export async function util_seed_test_database() {
+/** util_seed_test_database
+ * Drops current test database and seeds the test database
+ */
+async function util_seed_test_database() {
   // Drop Databases
   const connection_string = process.env.CONNECTION_STRING + process.env.DATABASE_NAME;
   const client = new MongoClient(connection_string);
@@ -105,4 +112,51 @@ export async function util_seed_test_database() {
     },
   ]
   await users_col.insertMany(users)
+}
+
+/** util_check_test
+ * Checks the result of a test
+ * @param {Object} response
+ * @param {boolean} pass_cond
+ * @param {number} test_num
+ * @return {boolean} (Passing or not)
+ */
+function util_check_test(response, pass_cond, test_num) {
+  // Init
+  let passing = true;
+  let output = "";
+  
+  if(typeof test_num === "number") {
+    output = "#" + test_num + " ";
+  }
+
+  try{
+    if(response.success == pass_cond) {
+      output = output + util_test_result_code("pass") + " ";
+    }
+    else {
+      passing = false;
+      output = output + util_test_result_code("fail") + " ";
+    }
+
+    if(response.success) {
+      
+      output = output + "Data: " + JSON.stringify(response.data);
+    }
+    else {
+      output = output + "Error: " + response.error_message;
+    }
+  }
+  catch (err) {
+    console.log("Error: " + err)
+  }
+
+  console.log(output);
+  return passing;
+}
+
+export {
+  util_test_result_code,
+  util_seed_test_database,
+  util_check_test,
 }

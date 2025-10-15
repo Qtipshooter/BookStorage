@@ -246,6 +246,7 @@ async function remove_user(user_id) {
     if (result.deletedCount) {
       return {
         success: true,
+        data: user_id
       }
     }
     else {

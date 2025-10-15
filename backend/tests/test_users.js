@@ -1,33 +1,11 @@
-import { util_test_result_code } from "./util_test.js";
+import { util_check_test } from "./util_test.js";
 import {register_user, check_level, get_user, get_users, remove_user, authorize_user} from "../api/users.js"
-import { ObjectId } from "bson";
 
 // ------ TEST FUNCTIONS ------ //
 
 async function test_register_user() {
   
   let passing = true;
-
-  // Function for reading test output regardless of outcome
-  function check_test_register_user (response, pass_cond, test_num){
-    if (response.success == pass_cond){
-      if(response.success) {
-        console.log("#" + test_num + " " + util_test_result_code("pass") + " Registered UserID: " + response.data);
-      }
-      else {
-        console.log("#" + test_num + " " + util_test_result_code("pass") + " Failed to enter user, message: " + response.error_message);
-      }
-    }
-    else {
-      passing = false;
-      if(response.success) {
-        console.log("#" + test_num + " " + util_test_result_code("fail") + " Registered invalid user: " + response.data);
-      }
-      else {
-        console.log("#" + test_num + " " + util_test_result_code("fail") + " Failed to enter user, message: " + response.error_message);
-      }
-    }
-  }
 
   // Tests Array
   const tests = [
@@ -108,7 +86,7 @@ async function test_register_user() {
   // Running Tests
   console.log("-- Testing register_user --");
   for (let i = 0; i < tests.length; i++) {
-    await register_user(tests[i].user, tests[i].email, tests[i].pass).then((res) => {check_test_register_user(res, tests[i].cond, i+1)});
+    await register_user(tests[i].user, tests[i].email, tests[i].pass).then((res) => {util_check_test(res, tests[i].cond, i+1)});
   }
   console.log("-- Test register_user complete --");
   return passing;
@@ -117,27 +95,6 @@ async function test_register_user() {
 async function test_authorize_user() {
     // Init
   let passing = true;
-
-  // Callback checks
-  function check_test_authorize_user(response, pass_cond, test_num) {
-    if(response.success == pass_cond) {
-      if(response.success) {
-        console.log("#" + test_num + " " + util_test_result_code("pass") + " Authorized User ID: " + response.data);
-      }
-      else {
-        console.log("#" + test_num + " " + util_test_result_code("pass") + " Error: " + response.error_message);
-      }
-    }
-    else {
-      passing = false;
-      if(response.success) {
-        console.log("#" + test_num + " " + util_test_result_code("fail") + " Authorized User ID: " + response.data);
-      }
-      else {
-        console.log("#" + test_num + " " + util_test_result_code("fail") + " Error: " + response.error_message);
-      }
-    }
-  }
 
   const test_cases = [
     {
@@ -214,7 +171,7 @@ async function test_authorize_user() {
 
   console.log("-- Testing authorize_user --");
   for (let i = 0; i < test_cases.length; i++) {
-    await authorize_user(test_cases[i].user, test_cases[i].pass).then((res) => {check_test_authorize_user(res, test_cases[i].cond, i+1)});
+    await authorize_user(test_cases[i].user, test_cases[i].pass).then((res) => {util_check_test(res, test_cases[i].cond, i+1)});
   }
   console.log("-- Test authorize_user complete --");
 }
@@ -224,27 +181,6 @@ async function test_check_level() {
   // Init
   let passing = true;
   let test_cases = [];
-
-  // Callback checks
-  function check_test_check_level(response, pass_cond, test_num) {
-    if(response.success == pass_cond) {
-      if(response.success) {
-        console.log("#" + test_num + " " + util_test_result_code("pass") + " User level: " + response.data);
-      }
-      else {
-        console.log("#" + test_num + " " + util_test_result_code("pass") + " Error: " + response.error_message);
-      }
-    }
-    else {
-      passing = false;
-      if(response.success) {
-        console.log("#" + test_num + " " + util_test_result_code("fail") + " User level: " + response.data);
-      }
-      else {
-        console.log("#" + test_num + " " + util_test_result_code("fail") + " Error: " + response.error_message);
-      }
-    }
-  }
 
   // Usernames to find IDs of valid users
   const usernames = [
@@ -270,33 +206,13 @@ async function test_check_level() {
 
   console.log("-- Testing check_level --");
   for (let i = 0; i < test_cases.length; i++) {
-    await check_level(test_cases[i].user_id).then((res) => {check_test_check_level(res, test_cases[i].cond, i+1)});
+    await check_level(test_cases[i].user_id).then((res) => {util_check_test(res, test_cases[i].cond, i+1)});
   }
   console.log("-- Test check_level complete --");
 }
 
 async function test_get_user() {
   let passing = true;
-
-  function check_test_get_user(response, pass_cond, test_num) {
-    if(response.success == pass_cond) {
-      if(response.success) {
-        console.log("#" + test_num + " " + util_test_result_code("pass") + " User Obtained: " + response.data.display_name);
-      }
-      else {
-        console.log("#" + test_num + " " + util_test_result_code("pass") + " User not found");
-      }
-    }
-    else {
-      passing = false;
-      if(response.success) {
-        console.log("#" + test_num + " " + util_test_result_code("fail") + " User Obtained: " + response.data.display_name);
-      }
-      else {
-        console.log("#" + test_num + " " + util_test_result_code("fail") + " User not found");
-      }
-    }
-  }
 
   // Tests Array
   const tests = [
@@ -361,7 +277,7 @@ async function test_get_user() {
   // Running Tests
   console.log("-- Testing get_user --");
   for (let i = 0; i < tests.length; i++) {
-    await get_user(tests[i].username).then((res) => {check_test_get_user(res, tests[i].cond, i+1)});
+    await get_user(tests[i].username).then((res) => {util_check_test(res, tests[i].cond, i+1)});
   }
   console.log("-- Test get_user complete --");
 
@@ -371,20 +287,8 @@ async function test_get_user() {
 async function test_get_users() { 
   let passing = true;
   
-  function check_test_get_users(response) {
-    if(response.success) {
-      console.log(util_test_result_code("pass") + " Users Found:")
-      response.data.forEach(user => {
-        console.log(JSON.stringify(user));
-      });
-    }
-    else {
-      passing = false;
-      console.log(util_test_result_code("fail") + " Users not Fetched")
-    }
-  }
   console.log("-- Testing get_users --");
-  await get_users().then((res) => {check_test_get_users(res)});
+  passing = await get_users().then((res) => { return util_check_test(res, true)});
   console.log("-- Test get_users complete --");
   return passing;
 }
@@ -394,27 +298,6 @@ async function test_remove_user() {
   // Init
   let passing = true;
   let test_cases = [];
-
-  // Test callback
-  function check_test_remove_user(response, pass_cond, test_num) {
-    if(response.success == pass_cond) {
-      if(response.success) {
-        console.log("#" + test_num + " " + util_test_result_code("pass") + " User Deleted");
-      }
-      else {
-        console.log("#" + test_num + " " + util_test_result_code("pass") + " Error Deleting User: " + response.error_message);
-      }
-    }
-    else {
-      passing = false;
-      if(response.success) {
-        console.log("#" + test_num + " " + util_test_result_code("fail") + " Deleted User??");
-      }
-      else {
-        console.log("#" + test_num + " " + util_test_result_code("fail") + " Error Deleting User: " + response.error_message);
-      }
-    }
-  }
 
   // Usernames to find IDs of valid users
   const usernames = [
@@ -441,7 +324,7 @@ async function test_remove_user() {
   // Running Tests
   console.log("-- Testing remove_user --");
   for (let i = 0; i < test_cases.length; i++) {
-    await remove_user(test_cases[i].user_id).then((res) => {check_test_remove_user(res, test_cases[i].cond, i+1)});
+    await remove_user(test_cases[i].user_id).then((res) => {util_check_test(res, test_cases[i].cond, i+1)});
   }
   console.log("-- Test remove_user complete --");
 
