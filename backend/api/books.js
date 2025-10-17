@@ -18,54 +18,96 @@ async function add_book(user_id, book) {
   const oid = get_ObjectID(user_id);
   const check_isbn_10 = /^{0-9}[10]$/
   const check_isbn_13 = /^{0-9}[13]$/
+  let duplicate = null;
   let new_book = {};
 
   // Check oid
-  if(!oid) {
+  if (!oid) {
     return {
       success: false,
       error_message: "Invalid User ID supplied",
     }
   }
+  new_book.user_id = oid;
 
   // Check book object and copy over to new_book (sanitation)
-  if(book) {
-
+  if (book) {
+    let all_required = true; // Verification that all required items are present
+    
     // Required items
-    if(typeof book.title === string) {new_book.title = book.title;}
-    if(book.authors && book.authors instanceof Array){
+    if (typeof book.title === string) { new_book.title = book.title; }
+    else { all_required = false; }
+    if (book.authors && book.authors instanceof Array) {
       new_book.authors = []
       book.authors.forEach(author => {
-        if(typeof author === string) {new_book.authors.push(author)}
+        if (typeof author === string) { new_book.authors.push(author) }
       });
     }
-    if(book.genres && book.genres instanceof Array){
+    else { all_required = false; }
+
+    // Return about missing reqs
+    if(!all_required) {
+      return {
+        success: false,
+        error_message: "Missing required book data (ex. Title)",
+      }
+    }
+
+    // Non Required Items
+    if (book.genres && book.genres instanceof Array) {
       new_book.genres = []
       book.genres.forEach(genre => {
-        if(typeof genre === string) {new_book.genres.push(genre);}
+        if (typeof genre === string) { new_book.genres.push(genre); }
       });
     }
-    if(typeof book.price === number){ new_book.price = book.price;}
-    if(typeof book.description === string){ new_book.description = book.description;}
-    if(typeof book.isbn_10 === number){
-      if(book.isbn_10.match(check_isbn_10)) {
+    if (typeof book.price === number) { new_book.price = book.price; }
+    if (typeof book.description === string) { new_book.description = book.description; }
+    if (typeof book.isbn_10 === string) {
+      if (book.isbn_10.match(check_isbn_10)) {
         new_book.isbn_10 = book.isbn_10;
       }
     }
-    if(typeof book.isbn_13 === number){
-      if(book.isbn_13.match(check_isbn_13)) {
+    if (typeof book.isbn_13 === string) {
+      if (book.isbn_13.match(check_isbn_13)) {
         new_book.isbn_13 = book.isbn_13;
       }
     }
-    // Non Required Items
   }
 
   // Check for duplicate unique identifiers (ISBN)
+  if(new_book.isbn_10) {
+    duplicate = await books.findOne({isbn_10: new_book.isbn_10})
+    if(duplicate) {
+      return {
+        success: false,
+        error_message: "Duplicate ISBN number",
+        error_data: duplicate
+      }
+    }
+  }
+  if(new_book.isbn_13) {
+    duplicate = await books.findOne({isbn_13: new_book.isbn_13})
+    if(duplicate) {
+      return {
+        success: false,
+        error_message: "Duplicate ISBN number",
+        error_data: duplicate
+      }
+    }
+  }
 
   // Insert book
+  const book_id = await books.insertOne(new_book).then((res) => {
+    return res.insertedId;
+  })
 
   // Return result
-
+  if(book_id) {
+    return {
+      success: true,
+      data: book_id
+    }
+  }
 }
 
 /** update_book
@@ -74,7 +116,7 @@ async function add_book(user_id, book) {
  * @param {Object} book
  * @return {Promise<Object>}
  */
-async function update_book(user_id, book) {}
+async function update_book(user_id, book) { }
 
 /** update_book_owner
  * Updates owner from current user to new user or default user/admins only
@@ -83,7 +125,7 @@ async function update_book(user_id, book) {}
  * @param {string} new_user
  * @return {Promise<Object>}
  */
-async function update_book_owner(book_id, current_user, new_user) {}
+async function update_book_owner(book_id, current_user, new_user) { }
 
 /** delete_book
  * Deletes a book from db
@@ -93,20 +135,20 @@ async function update_book_owner(book_id, current_user, new_user) {}
  * @param {string} book_id
  * @return {Promise<Object>}
  */
-async function delete_book(user_id, book_id) {}
+async function delete_book(user_id, book_id) { }
 
 /** get_book
  * Gets book by supplied ID
  * @param {string} book_id
  * @return {Promise<Object>}
  */
-async function get_book(book_id) {}
+async function get_book(book_id) { }
 
 /** find_book
  * Searches for a book based on supplied parameters
  * @param {Object} search_params
  * @return {Promise<Object>}
  */
-async function find_book(search_params) {}
+async function find_book(search_params) { }
 
 export { add_book, update_book, update_book_owner, delete_book, get_book, find_book }
