@@ -33,7 +33,7 @@ async function add_book(user_id, book) {
   // Check book object and copy over to new_book (sanitation)
   if (book) {
     let all_required = true; // Verification that all required items are present
-    
+
     // Required items
     if (typeof book.title === string) { new_book.title = book.title; }
     else { all_required = false; }
@@ -46,7 +46,7 @@ async function add_book(user_id, book) {
     else { all_required = false; }
 
     // Return about missing reqs
-    if(!all_required) {
+    if (!all_required) {
       return {
         success: false,
         error_message: "Missing required book data (ex. Title)",
@@ -75,9 +75,9 @@ async function add_book(user_id, book) {
   }
 
   // Check for duplicate unique identifiers (ISBN)
-  if(new_book.isbn_10) {
-    duplicate = await books.findOne({isbn_10: new_book.isbn_10})
-    if(duplicate) {
+  if (new_book.isbn_10) {
+    duplicate = await books.findOne({ isbn_10: new_book.isbn_10 })
+    if (duplicate) {
       return {
         success: false,
         error_message: "Duplicate ISBN number",
@@ -85,9 +85,9 @@ async function add_book(user_id, book) {
       }
     }
   }
-  if(new_book.isbn_13) {
-    duplicate = await books.findOne({isbn_13: new_book.isbn_13})
-    if(duplicate) {
+  if (new_book.isbn_13) {
+    duplicate = await books.findOne({ isbn_13: new_book.isbn_13 })
+    if (duplicate) {
       return {
         success: false,
         error_message: "Duplicate ISBN number",
@@ -102,7 +102,7 @@ async function add_book(user_id, book) {
   })
 
   // Return result
-  if(book_id) {
+  if (book_id) {
     return {
       success: true,
       data: book_id
@@ -122,10 +122,17 @@ async function update_book(user_id, book) { }
  * Updates owner from current user to new user or default user/admins only
  * @param {string} book_id
  * @param {string} current_user
- * @param {string} new_user
+ * @param {string} new_username
  * @return {Promise<Object>}
  */
-async function update_book_owner(book_id, current_user, new_user) { }
+async function update_book_owner(book_id, current_user, new_username) {
+  // Init
+  // Verify inputs as IDs
+  // Get book and its current user
+  // Check if current_user is admin or owner
+  // Get user_id of new_username
+  // Update current book owner
+}
 
 /** delete_book
  * Deletes a book from db
@@ -142,7 +149,35 @@ async function delete_book(user_id, book_id) { }
  * @param {string} book_id
  * @return {Promise<Object>}
  */
-async function get_book(book_id) { }
+async function get_book(book_id) {
+  // Init
+  const db = mdb_connect();
+  const books = db.collection("books");
+  const obj_id = get_ObjectID(book_id);
+
+  // Verify ID
+  if (!obj_id) {
+    return {
+      success: false,
+      error_message: "Invalid book ID",
+    }
+  }
+
+  // Get Book
+  const book = await books.findOne({ _id: obj_id });
+  if (book) {
+    return {
+      success: true,
+      data: book
+    }
+  }
+  else {
+    return {
+      success: false,
+      error_message: "Book not found",
+    }
+  }
+}
 
 /** find_book
  * Searches for a book based on supplied parameters
