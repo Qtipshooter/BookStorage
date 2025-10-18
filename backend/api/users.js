@@ -1,6 +1,7 @@
 import { ObjectId } from "mongodb";
 import { mdb_connect } from "../util/db_connection.js";
 import bcrypt from "bcrypt";
+import { get_ObjectID } from "./util.js";
 
 // ------ User Functions ------ //
 /** register_user
@@ -170,6 +171,45 @@ async function get_user(username) {
   }
   else {
     user = await users.findOne({ username: username.toLowerCase() }, { projection: proj })
+  }
+
+  // Return Payload
+  if (user) {
+    return {
+      success: true,
+      data: user,
+    }
+  }
+  else {
+    return {
+      success: false,
+      error_message: "User Not Found"
+    }
+  }
+}
+
+/** get_user_by_id
+ * Gets basic user information (administrative)
+ * @param {string} user_id
+ * @return {Promise<Object>}
+ */
+async function get_user_by_id(user_id) {
+  // Init
+  const db = await mdb_connect(); // DB Con
+  const users = db.collection("users"); // User table
+  const proj = { hashcode: 0, } // Projection to exclude pass-hashes
+  const user_oid = get_ObjectID(user_id);
+  let user = null; // User object, not directly returned so that we have the success state
+
+  // Find the User
+  if(user_oid) {
+    user = await users.findOne({_id: user_oid}, { projection: proj });
+  }
+  else {
+    return {
+      success: false,
+      error_message: "Invalid User ID",
+    }
   }
 
   // Return Payload
