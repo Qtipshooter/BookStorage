@@ -2,7 +2,7 @@
 // Quinton Graham
 // Tests the books.js functions
 
-import { add_book } from "../api/books.js";
+import { add_book, get_book } from "../api/books.js";
 import { get_user } from "../api/users.js";
 import { get_ObjectID } from "../api/util.js";
 import { util_check_test } from "./util_test.js";
@@ -259,8 +259,46 @@ async function test_add_book() {
   return passing;
 }
 
-async function test_get_book() { }
+async function test_get_book() {
+  // Init
+  let passing = true;
+
+  // Test Cases
+  const test_cases = [
+    {
+      book_id: "68f3df000000000000000001",
+      cond: true,
+    },
+    {
+      book_id: "68f3df000000000000000009",
+      cond: true,
+    },
+    {
+      book_id: "aaaaaa000000000000000000",
+      cond: false,
+    },
+    {
+      book_id: "Default Book 01",
+      cond: false,
+    },
+    {
+      book_id: "8080000010",
+      cond: false,
+    },
+  ]
+  
+  // Run Tests
+  console.log("-- Testing get_book --");
+  for (let i = 0; i < test_cases.length; i++) {
+    await get_book(test_cases[i].book_id).then((res) => { util_check_test(res, test_cases[i].cond, i + 1) });
+  }
+  console.log("-- Test get_book complete --");
+  
+  // Return Output
+  return passing;
+}
 
 export async function test_books() {
   await test_add_book();
+  await test_get_book();
 }

@@ -195,7 +195,7 @@ async function delete_book(user_id, book_id) { }
  */
 async function get_book(book_id) {
   // Init
-  const db = mdb_connect();
+  const db = await mdb_connect();
   const books = db.collection("books");
   const obj_id = get_ObjectID(book_id);
 
