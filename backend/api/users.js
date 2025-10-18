@@ -309,6 +309,7 @@ export {
   register_user,
   check_level,
   get_user,
+  get_user_by_id,
   get_users,
   remove_user,
   authorize_user,

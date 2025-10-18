@@ -3,6 +3,7 @@
 // Book db functions for Book Storage Program
 
 import { mdb_connect } from "../util/db_connection.js";
+import { get_user_by_id } from "./users.js";
 import { get_ObjectID } from "./util.js";
 
 /** add_book
@@ -19,6 +20,7 @@ async function add_book(user_id, book) {
   const oid = get_ObjectID(user_id);
   const check_isbn_10 = /^[0-9]{10}$/
   const check_isbn_13 = /^[0-9]{13}$/
+  let user = null;
   let duplicate = null;
   let new_book = {};
 
@@ -30,6 +32,15 @@ async function add_book(user_id, book) {
       error_data: user_id
     }
   }
+  user = await get_user_by_id(user_id);
+  if (!user.success) {
+    return {
+      success: false,
+      error_message: "User does not exist",
+      error_data: user_id
+    }
+  }
+
   new_book.user_id = oid;
 
   // Check book object and copy over to new_book (sanitation)
