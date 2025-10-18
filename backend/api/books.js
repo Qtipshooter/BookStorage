@@ -2,8 +2,8 @@
 // Quinton Graham
 // Book db functions for Book Storage Program
 
-import { mdb_connect } from "../util/db_connection";
-import { get_ObjectID } from "./util";
+import { mdb_connect } from "../util/db_connection.js";
+import { get_ObjectID } from "./util.js";
 
 /** add_book
  * Add a book to the collection
@@ -13,7 +13,7 @@ import { get_ObjectID } from "./util";
  */
 async function add_book(user_id, book) {
   // Init
-  const db = mdb_connect();
+  const db = await mdb_connect();
   const books = db.collection("books");
   const oid = get_ObjectID(user_id);
   const check_isbn_10 = /^{0-9}[10]$/
@@ -35,12 +35,12 @@ async function add_book(user_id, book) {
     let all_required = true; // Verification that all required items are present
 
     // Required items
-    if (typeof book.title === string) { new_book.title = book.title; }
+    if (typeof book.title === "string") { new_book.title = book.title; }
     else { all_required = false; }
     if (book.authors && book.authors instanceof Array) {
       new_book.authors = []
       book.authors.forEach(author => {
-        if (typeof author === string) { new_book.authors.push(author) }
+        if (typeof author === "string") { new_book.authors.push(author) }
       });
     }
     else { all_required = false; }
@@ -57,17 +57,16 @@ async function add_book(user_id, book) {
     if (book.genres && book.genres instanceof Array) {
       new_book.genres = []
       book.genres.forEach(genre => {
-        if (typeof genre === string) { new_book.genres.push(genre); }
+        if (typeof genre === "string") { new_book.genres.push(genre); }
       });
     }
-    if (typeof book.price === number) { new_book.price = book.price; }
-    if (typeof book.description === string) { new_book.description = book.description; }
-    if (typeof book.isbn_10 === string) {
+    if (typeof book.description === "string") { new_book.description = book.description; }
+    if (typeof book.isbn_10 === "string") {
       if (book.isbn_10.match(check_isbn_10)) {
         new_book.isbn_10 = book.isbn_10;
       }
     }
-    if (typeof book.isbn_13 === string) {
+    if (typeof book.isbn_13 === "string") {
       if (book.isbn_13.match(check_isbn_13)) {
         new_book.isbn_13 = book.isbn_13;
       }
