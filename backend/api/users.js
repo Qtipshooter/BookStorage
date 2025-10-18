@@ -1,7 +1,10 @@
 import { ObjectId } from "mongodb";
+import dotenv from "dotenv"
 import { mdb_connect } from "../util/db_connection.js";
 import bcrypt from "bcrypt";
 import { get_ObjectID } from "./util.js";
+const envpath = `.env${process.env.NODE_ENV || ""}`;
+dotenv.config({path: envpath})
 
 // ------ User Functions ------ //
 /** register_user
@@ -42,7 +45,7 @@ async function register_user(username, email, password) {
   // Checks complete, insert
   // NOTE TO SELF: Display name is stored seperately due to the size concern 
   // being less than the performance concern when searching at scale.
-  const passhash = await bcrypt.hash(password, 12);
+  const passhash = await bcrypt.hash(password, Number(process.env.HASH_PASSES));
   const user_id = await users.insertOne({
     display_name: username,
     username: username.toLowerCase(),

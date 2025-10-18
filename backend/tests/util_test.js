@@ -1,3 +1,4 @@
+import bcrypt from "bcrypt";
 import dotenv from "dotenv"
 import { MongoClient } from "mongodb";
 dotenv.config({path: ".env.test"});
@@ -26,9 +27,11 @@ function util_test_result_code(result) {
 async function util_seed_test_database() {
   // Drop Databases
   const connection_string = process.env.CONNECTION_STRING + process.env.DATABASE_NAME;
+  const passes = Number(process.env.HASH_PASSES);
+  console.log(typeof passes)
   const client = new MongoClient(connection_string);
   await client.connect();
-  console.log("Dropping previous test Database");
+  console.log(util_test_result_code("info") + " Dropping previous test Database . . .");
   const db = client.db();
   try{
     const result = await db.dropDatabase();
@@ -43,6 +46,7 @@ async function util_seed_test_database() {
   }
 
   // Add Default User Table
+  console.log(util_test_result_code("info") + " Adding Preset Users . . .")
   const users_col = db.collection("users");
   const create_date = new Date();
   const users = [
@@ -50,7 +54,7 @@ async function util_seed_test_database() {
       display_name: "admin",
       username: "admin",
       primary_email: "admin@admin.com",
-      hashcode: "$2b$12$XWYDiTIWlBQJt6rPutIrr.MP4Te4nrgfLqs2C9tjMQwCoI5FCNRvS",
+      hashcode: await bcrypt.hash("P@55C0d3s", passes),
       created_date: create_date,
       level: "admin"
     },
@@ -58,7 +62,7 @@ async function util_seed_test_database() {
       display_name: "dev",
       username: "dev",
       primary_email: "dev@admin.com",
-      hashcode: "$2b$12$xPrENs.TSMlkTsUO58xNSeSdjOMIvb.07qjII28Rgs/3wctKqIwp6",
+      hashcode: await bcrypt.hash("2 Correct Horse Battery Staples", passes),
       created_date: create_date,
       level: "admin"
     },
@@ -66,7 +70,7 @@ async function util_seed_test_database() {
       display_name: "JohnDoe1",
       username: "johndoe1",
       primary_email: "john.doe@email.com",
-      hashcode: "$2b$12$COqGkMrJB2X.VkG6cqrinu3KMG2eg3AJO0RI3xp08IxO3siA8lcCG",
+      hashcode: await bcrypt.hash("Password1", passes),
       created_date: create_date,
       level: "user"
     },
@@ -74,7 +78,7 @@ async function util_seed_test_database() {
       display_name: "Jane_Doe",
       username: "jane_doe",
       primary_email: "jane.doe@email.com",
-      hashcode: "$2b$12$Dc1GN4WHAB/vgk/P3O0ueeXhOeexcsrzfqpJu12rfsHwDgUyp3Eeu",
+      hashcode: await bcrypt.hash("H4rd3rP@55word", passes),
       created_date: create_date,
       level: "user"
     },
@@ -82,7 +86,7 @@ async function util_seed_test_database() {
       display_name: "Sara_Codes",
       username: "sara_codes",
       primary_email: "fancy+email@email.co.uk",
-      hashcode: "$2b$12$u8gQfSuADBuhI1N2GmAQtOTvrVyPu/INgNwxo.AbH85jpuPHDDm7e",
+      hashcode: await bcrypt.hash("Password with 3 spaces.", passes),
       created_date: create_date,
       level: "user"
     },
@@ -90,7 +94,7 @@ async function util_seed_test_database() {
       display_name: "Sagar0cean",
       username: "sagar0cean",
       primary_email: "0cean@email.com",
-      hashcode: "$2b$12$.TB0PCDmrVqP1NsHhAoEYu/NbT2UyloGdyU8CdjH.Es0uL3dSlXui",
+      hashcode: await bcrypt.hash("!?or?!Shebang2", passes),
       created_date: create_date,
       level: "user"
     },
@@ -98,7 +102,7 @@ async function util_seed_test_database() {
       display_name: "PETER",
       username: "peter",
       primary_email: "drips@peters.gov",
-      hashcode: "$2b$12$.BqF7SUOBPzCKVVu8pVuSeVv.Qu8pI7uDgwoKRR66PW.QAegUKMTi",
+      hashcode: await bcrypt.hash("Actually 2 tiny Pass", passes),
       created_date: create_date,
       level: "user"
     },
@@ -106,12 +110,13 @@ async function util_seed_test_database() {
       display_name: "George",
       username: "george",
       primary_email: "yellowhat@man.com",
-      hashcode: "$2b$12$KnKB47Gk.JmmWCCyiohqzOvI8ok8bQVgVRL85AN5AmLuq4gv5aHT.",
+      hashcode: await bcrypt.hash("2Curious4you", passes),
       created_date: create_date,
       level: "user"
     },
   ]
   await users_col.insertMany(users)
+  console.log(util_test_result_code("info") + " Users Added")
 }
 
 /** util_check_test
