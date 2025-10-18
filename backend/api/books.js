@@ -15,9 +15,10 @@ async function add_book(user_id, book) {
   // Init
   const db = await mdb_connect();
   const books = db.collection("books");
+  const users = db.collection("users");
   const oid = get_ObjectID(user_id);
-  const check_isbn_10 = /^{0-9}[10]$/
-  const check_isbn_13 = /^{0-9}[13]$/
+  const check_isbn_10 = /^[0-9]{10}$/
+  const check_isbn_13 = /^[0-9]{13}$/
   let duplicate = null;
   let new_book = {};
 
@@ -26,6 +27,7 @@ async function add_book(user_id, book) {
     return {
       success: false,
       error_message: "Invalid User ID supplied",
+      error_data: user_id
     }
   }
   new_book.user_id = oid;
@@ -35,15 +37,23 @@ async function add_book(user_id, book) {
     let all_required = true; // Verification that all required items are present
 
     // Required items
-    if (typeof book.title === "string") { new_book.title = book.title; }
-    else { all_required = false; }
+    if (typeof book.title === "string") {
+      new_book.title = book.title;
+    }
+    else {
+      all_required = false;
+    }
     if (book.authors && book.authors instanceof Array) {
       new_book.authors = []
       book.authors.forEach(author => {
-        if (typeof author === "string") { new_book.authors.push(author) }
+        if (typeof author === "string") {
+          new_book.authors.push(author)
+        }
       });
     }
-    else { all_required = false; }
+    else {
+      all_required = false;
+    }
 
     // Return about missing reqs
     if (!all_required) {
@@ -60,16 +70,40 @@ async function add_book(user_id, book) {
         if (typeof genre === "string") { new_book.genres.push(genre); }
       });
     }
-    if (typeof book.description === "string") { new_book.description = book.description; }
-    if (typeof book.isbn_10 === "string") {
-      if (book.isbn_10.match(check_isbn_10)) {
-        new_book.isbn_10 = book.isbn_10;
+    if (typeof book.description === "string") {
+      new_book.description = book.description;
+    }
+    if(book.isbn_10) {
+      if (typeof book.isbn_10 === "string") {
+        if (book.isbn_10.match(check_isbn_10)) {
+          new_book.isbn_10 = book.isbn_10;
+        }
+      }
+      else {
+        return {
+          success: false,
+          error_message: "Improperly formatted ISBN"
+        }
       }
     }
-    if (typeof book.isbn_13 === "string") {
-      if (book.isbn_13.match(check_isbn_13)) {
-        new_book.isbn_13 = book.isbn_13;
+    if(book.isbn_13) {
+      if (typeof book.isbn_13 === "string") {
+        if (book.isbn_13.match(check_isbn_13)) {
+          new_book.isbn_13 = book.isbn_13;
+        }
       }
+      else {
+        return {
+          success: false,
+          error_message: "Improperly formatted ISBN"
+        }
+      }
+    }
+  }
+  else {
+    return {
+      success: false,
+      error_message: "No book data supplied"
     }
   }
 

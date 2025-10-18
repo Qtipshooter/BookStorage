@@ -140,11 +140,14 @@ function util_check_test(response, pass_cond, test_num) {
     }
 
     if(response.success) {
-      
       output = output + "Data: " + JSON.stringify(response.data);
     }
     else {
       output = output + "Error: " + response.error_message;
+    }
+
+    if(!passing) {
+      output = output + "\n\tData: " + JSON.stringify(response);
     }
   }
   catch (err) {
