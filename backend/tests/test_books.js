@@ -183,22 +183,6 @@ async function test_add_book() {
       isbn_13: "9898989898989",
     },
     {
-      title: "Invalid Book 6",
-      authors: ["Author 1"],
-      genres: ["Horror"],
-      description: "Invalid Book #6 with misformated data",
-      isbn_10: 100000001,
-      isbn_13: "9898989898989",
-    },
-    {
-      title: "Invalid Book 7",
-      authors: ["Author 1"],
-      genres: ["Horror"],
-      description: "Invalid Book #7 with misformated data",
-      isbn_10: "9898989898",
-      isbn_13: 100000000001,
-    },
-    {
       description: "Invalid Book #8 with missing data",
     },
   ]

@@ -4,7 +4,7 @@
 
 import { mdb_connect } from "../util/db_connection.js";
 import { check_level, get_user, get_user_by_id } from "./users.js";
-import { get_ObjectID } from "./util.js";
+import { get_ObjectID, sanitize_book } from "./util.js";
 
 /** add_book
  * Add a book to the collection
@@ -16,15 +16,12 @@ async function add_book(user_id, book) {
   // Init
   const db = await mdb_connect();
   const books = db.collection("books");
-  const users = db.collection("users");
   const oid = get_ObjectID(user_id);
-  const check_isbn_10 = /^[0-9]{10}$/
-  const check_isbn_13 = /^[0-9]{13}$/
   let user = null;
   let duplicate = null;
-  let new_book = {};
+  let new_book = sanitize_book(book);
 
-  // Check oid
+  // Check input params
   if (!oid) {
     return {
       success: false,
@@ -40,81 +37,22 @@ async function add_book(user_id, book) {
       error_data: user_id
     }
   }
+  if(!new_book) {
+    return {
+      success: false,
+      error_message: "Invalid Book data supplied"
+    }
+  }
 
   new_book.user_id = oid;
 
-  // Check book object and copy over to new_book (sanitation)
-  if (book) {
-    let all_required = true; // Verification that all required items are present
+  //console.log(JSON.stringify(new_book));
 
-    // Required items
-    if (typeof book.title === "string") {
-      new_book.title = book.title;
-    }
-    else {
-      all_required = false;
-    }
-    if (book.authors && book.authors instanceof Array) {
-      new_book.authors = []
-      book.authors.forEach(author => {
-        if (typeof author === "string") {
-          new_book.authors.push(author)
-        }
-      });
-    }
-    else {
-      all_required = false;
-    }
-
-    // Return about missing reqs
-    if (!all_required) {
-      return {
-        success: false,
-        error_message: "Missing required book data (ex. Title)",
-      }
-    }
-
-    // Non Required Items
-    if (book.genres && book.genres instanceof Array) {
-      new_book.genres = []
-      book.genres.forEach(genre => {
-        if (typeof genre === "string") { new_book.genres.push(genre); }
-      });
-    }
-    if (typeof book.description === "string") {
-      new_book.description = book.description;
-    }
-    if(book.isbn_10) {
-      if (typeof book.isbn_10 === "string") {
-        if (book.isbn_10.match(check_isbn_10)) {
-          new_book.isbn_10 = book.isbn_10;
-        }
-      }
-      else {
-        return {
-          success: false,
-          error_message: "Improperly formatted ISBN"
-        }
-      }
-    }
-    if(book.isbn_13) {
-      if (typeof book.isbn_13 === "string") {
-        if (book.isbn_13.match(check_isbn_13)) {
-          new_book.isbn_13 = book.isbn_13;
-        }
-      }
-      else {
-        return {
-          success: false,
-          error_message: "Improperly formatted ISBN"
-        }
-      }
-    }
-  }
-  else {
+  // Verify necessary parameters are included
+  if(!new_book.title || !new_book.authors){
     return {
       success: false,
-      error_message: "No book data supplied"
+      error_message: "Missing required book data (Title and Authors)",
     }
   }
 
@@ -292,6 +230,12 @@ async function get_book(book_id) {
  * @param {Object} search_params
  * @return {Promise<Object>}
  */
-async function find_book(search_params) { }
+async function search_books(search_params) {
+  // Init
+  const db = await mdb_connect();
+  const books = db.collection("books");
+  
+  // 
+}
 
-export { add_book, update_book, update_book_owner, delete_book, get_book, find_book }
+export { add_book, update_book, update_book_owner, delete_book, get_book, search_books }

@@ -69,7 +69,7 @@ function sanitize_book(original_book) {
     if (original_book.authors instanceof Array) {
       new_book.authors = [];
       original_book.authors.forEach(author => {
-        if (typeof genre === "string") {
+        if (typeof author === "string") {
           new_book.authors.push(author);
         }
       });
@@ -119,7 +119,7 @@ function sanitize_book(original_book) {
   // isbn_13 Field
   if (original_book.isbn_13) {
     if (typeof original_book.isbn_13 === "string" && original_book.isbn_13.match(check_isbn_13)) {
-      new_book.isbn_10 = original_book.isbn_13
+      new_book.isbn_13 = original_book.isbn_13
     }
   }
 
