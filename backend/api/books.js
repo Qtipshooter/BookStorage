@@ -3,7 +3,7 @@
 // Book db functions for Book Storage Program
 
 import { mdb_connect } from "../util/db_connection.js";
-import { get_user_by_id } from "./users.js";
+import { check_level, get_user, get_user_by_id } from "./users.js";
 import { get_ObjectID } from "./util.js";
 
 /** add_book
@@ -171,11 +171,75 @@ async function update_book(user_id, book) { }
  */
 async function update_book_owner(book_id, current_user, new_username) {
   // Init
-  // Verify inputs as IDs
+  const db = await mdb_connect();
+  const books = db.collection("books");
+  const current_id = get_ObjectID(current_user);
+  const request_validated = false;
+
   // Get book and its current user
-  // Check if current_user is admin or owner
-  // Get user_id of new_username
-  // Update current book owner
+  const new_id = await get_user(new_username).then((res) => {
+    if(res.success) {
+      return res.data._id;
+    }
+    else {
+      return null;
+    }
+  })
+
+  if(!new_id) {
+    return {
+      success: false,
+      error_message: "Invalid new user",
+    }
+  }
+
+  const book_owner = await get_book(book_id).then((res) => {
+    if(res.success) {
+      return res.data.user_id.toString();
+    }
+    return false;
+  })
+  if(!book_owner) {
+    return {
+      success: false,
+      error_message: "Invalid book"
+    }
+  }
+
+  const user_level = await check_level(current_user).then((res) => {
+    if (res.success) {
+      return res.data;
+    }
+    return false;
+  })
+  if(user_level == "admin") {
+    request_validated = true;
+  }
+  if(current_user == book_owner) {
+    request_validated = true;
+  }
+  if(!request_validated) {
+    return {
+      success: false,
+      error_message: "Invalid Request User"
+    }
+  }
+
+  const book_update_result = await books.updateOne({_id: get_ObjectID(book)}, {$set: {user_id: new_id}});
+
+  if(book_update_result.modifiedCount) {
+    return {
+      success: true,
+      data: book_update_result.modifiedCount
+    }
+  }
+  else {
+    return {
+      success: false,
+      error_message: "Error updating book owner",
+      error_data: book_update_result
+    }
+  }
 }
 
 /** delete_book
