@@ -37,7 +37,7 @@ async function add_book(user_id, book) {
       error_data: user_id
     }
   }
-  if(!new_book) {
+  if (!new_book) {
     return {
       success: false,
       error_message: "Invalid Book data supplied"
@@ -49,7 +49,7 @@ async function add_book(user_id, book) {
   //console.log(JSON.stringify(new_book));
 
   // Verify necessary parameters are included
-  if(!new_book.title || !new_book.authors){
+  if (!new_book.title || !new_book.authors) {
     return {
       success: false,
       error_message: "Missing required book data (Title and Authors)",
@@ -95,10 +95,65 @@ async function add_book(user_id, book) {
 /** update_book
  * Updates a book from owner or admin.  Only updates supplied fields, overwrites supplied fields
  * @param {string} user_id
- * @param {Object} book
+ * @param {string} book_id
+ * @param {Object} updated_book_values
  * @return {Promise<Object>}
  */
-async function update_book(user_id, book) { }
+async function update_book(user_id, book_id, updated_book_values) {
+  // Init
+  const db = await mdb_connect();
+  const books = db.collection("books")
+  const sanitized_updates = sanitize_book(updated_book_values);
+  const bo_id = get_ObjectID(book_id);
+  const u_id = get_ObjectID(user_id);
+  const owner = await get_book(bo_id).then((res) => {
+    if (res.success) {
+      return res.data.user_id;
+    }
+    else {
+      return null;
+    }
+  });
+
+  // Error on invalid params
+  if (!(u_id && bo_id && updated_book)) {
+    return {
+      success: false,
+      error_message: "Invalid parameter(s)",
+    }
+  }
+
+  // Sanitize anything the sanatizer didn't grab (Other function for user, never update _id)
+  delete sanitized_updates._id;
+  delete sanitized_updates.user_id;
+
+  // Check user validity of request
+  if (!(owner == u_id)) {
+    let user_ver = await check_level(user_id);
+    if(!(user_ver.success && (user_ver.data == "admin"))) {
+      return {
+        success: false,
+        error_message: "User not authorized to edit this book"
+      }
+    }
+  }
+
+  const result = await books.updateOne({_id: bo_id}, sanitized_updates);
+
+  if(result.modifiedCount > 0) {
+    return {
+      success: true,
+      data: result.modifiedCount
+    }
+  }
+  else { // Shouldn't be reached without error on DB side, as book is fetched earlier
+    return {
+      success: false,
+      error_message: "No Updates processed"
+    }
+  }
+
+}
 
 /** update_book_owner
  * Updates owner from current user to new user or default user/admins only
@@ -116,7 +171,7 @@ async function update_book_owner(book_id, current_user, new_username) {
 
   // Get book and its current user
   const new_id = await get_user(new_username).then((res) => {
-    if(res.success) {
+    if (res.success) {
       return res.data._id;
     }
     else {
@@ -124,7 +179,7 @@ async function update_book_owner(book_id, current_user, new_username) {
     }
   })
 
-  if(!new_id) {
+  if (!new_id) {
     return {
       success: false,
       error_message: "Invalid new user",
@@ -132,12 +187,12 @@ async function update_book_owner(book_id, current_user, new_username) {
   }
 
   const book_owner = await get_book(book_id).then((res) => {
-    if(res.success) {
+    if (res.success) {
       return res.data.user_id.toString();
     }
     return false;
   })
-  if(!book_owner) {
+  if (!book_owner) {
     return {
       success: false,
       error_message: "Invalid book"
@@ -150,22 +205,22 @@ async function update_book_owner(book_id, current_user, new_username) {
     }
     return false;
   })
-  if(user_level == "admin") {
+  if (user_level == "admin") {
     request_validated = true;
   }
-  if(current_user == book_owner) {
+  if (current_user == book_owner) {
     request_validated = true;
   }
-  if(!request_validated) {
+  if (!request_validated) {
     return {
       success: false,
       error_message: "Invalid Request User"
     }
   }
 
-  const book_update_result = await books.updateOne({_id: get_ObjectID(book)}, {$set: {user_id: new_id}});
+  const book_update_result = await books.updateOne({ _id: get_ObjectID(book) }, { $set: { user_id: new_id } });
 
-  if(book_update_result.modifiedCount) {
+  if (book_update_result.modifiedCount) {
     return {
       success: true,
       data: book_update_result.modifiedCount
@@ -225,7 +280,7 @@ async function get_book(book_id) {
   }
 }
 
-/** find_book
+/** search_book
  * Searches for a book based on supplied parameters
  * @param {Object} search_params
  * @return {Promise<Object>}
@@ -234,7 +289,7 @@ async function search_books(search_params) {
   // Init
   const db = await mdb_connect();
   const books = db.collection("books");
-  
+
   // 
 }
 
