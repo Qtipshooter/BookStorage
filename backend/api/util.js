@@ -129,7 +129,56 @@ function sanitize_book(original_book) {
   return new_book;
 }
 
+/** success
+ * Shorthand return for success objects
+ * @param {any} data Whatever data will be returned in the success object
+ * @return {Object}
+ */
+function success(data) {
+  return {
+    success: true,
+    data: data
+  }
+}
+
+/** failure
+ * Shorthand return for failure objects
+ * @param {string} error_message The Error to display on failure
+ * @param {number} error_code
+ * @param {any} error_data Error data for debugging or troubleshooting
+ * @return {Object}
+ */
+function failure(error_message, error_code = 500, error_data = null) {
+
+  if (Number(error_code) === NaN) {
+    error_code = 500;
+  }
+
+  return {
+    success: false,
+    error_message: error_message,
+    error_code: error_code,
+    error_data: error_data,
+  }
+}
+
+/** clean_check
+ * Checks an object for positive on success, and returns null if not.  Returns data directly if successful
+ * Allows the following: api_data = clean_check(await api_call()) rather than then chaining
+ * @param {Object} success_object Object returned by internal functions
+ * @return {any | null} success_object.data or null if unsuccessful
+ */
+function clean_check(success_object) {
+  if (success_object.success) {
+    return success_object.data;
+  }
+  return null;
+}
+
 export {
   get_ObjectID,
   sanitize_book,
+  success,
+  failure,
+  clean_check,
 }
