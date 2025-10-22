@@ -130,7 +130,7 @@ async function update_book(user_id, book_id, updated_book_values) {
   // Check user validity of request
   if (!(owner == u_id)) {
     let user_ver = await check_level(user_id);
-    if(!(user_ver.success && (user_ver.data == "admin"))) {
+    if (!(user_ver.success && (user_ver.data == "admin"))) {
       return {
         success: false,
         error_message: "User not authorized to edit this book"
@@ -138,9 +138,9 @@ async function update_book(user_id, book_id, updated_book_values) {
     }
   }
 
-  const result = await books.updateOne({_id: bo_id}, sanitized_updates);
+  const result = await books.updateOne({ _id: bo_id }, sanitized_updates);
 
-  if(result.modifiedCount > 0) {
+  if (result.modifiedCount > 0) {
     return {
       success: true,
       data: result.modifiedCount
@@ -243,7 +243,56 @@ async function update_book_owner(book_id, current_user, new_username) {
  * @param {string} book_id
  * @return {Promise<Object>}
  */
-async function delete_book(user_id, book_id) { }
+async function delete_book(user_id, book_id) {
+  // !TODO! Add owner delete own book if it is only in their own library
+  // Init
+  const db = await mdb_connect();
+  const books = db.collection("books");
+  const bo_id = get_ObjectID(book_id);
+  const is_admin = await check_level(user_id).then((res) => {
+    if (res.success) {
+      return res.data == "admin";
+    }
+    return false;
+  });
+  const owner = await get_book(book_id).then((res) => {
+    if (res.success) {
+      return res.user_id;
+    }
+    return null;
+  });
+  // const book_owners = !TODO Implementation of Lib!
+
+  if (!bo_id) {
+    return {
+      success: false,
+      error_message: "Invalid Book ID"
+    }
+  }
+
+  // Identity Verification (to be wrapped in verification for owner)
+  if (!is_admin) {
+    return {
+      success: false,
+      error_message: "Unauthorized User",
+    }
+  }
+
+  // Delete
+  const result = await books.deleteOne({ _id: bo_id });
+  if (result.deletedCount > 0) {
+    return {
+      success: true,
+      data: result.deletedCount,
+    }
+  }
+  else {
+    return {
+      success: false,
+      error_message: "No Books Deleted",
+    }
+  }
+}
 
 /** get_book
  * Gets book by supplied ID
