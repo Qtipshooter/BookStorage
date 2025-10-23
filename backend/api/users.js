@@ -2,9 +2,9 @@ import { ObjectId } from "mongodb";
 import dotenv from "dotenv"
 import { mdb_connect } from "../util/db_connection.js";
 import bcrypt from "bcrypt";
-import { get_ObjectID } from "./util.js";
+import { ERR, failure, get_ObjectID, success } from "./util.js";
 const envpath = `.env${process.env.NODE_ENV || ""}`;
-dotenv.config({path: envpath})
+dotenv.config({ path: envpath })
 
 // ------ User Functions ------ //
 /** register_user
@@ -30,17 +30,14 @@ async function register_user(username, email, password) {
   if (!email.match(email_regex)) { err_msg = "Email is invalid"; invalid_registration = true; }
   if (!password.match(pass_regex)) { err_msg = "Password does not meet length or complexity requirements"; invalid_registration = true; }
 
+  if (invalid_registration) { return failure(ERR.INVALID_FORMAT, err_msg); }
+
   // Already in use checks
   if (await users.findOne({ username: username.toLowerCase() })) { err_msg = "Username in use"; invalid_registration = true; }
   if (await users.findOne({ primary_email: email.toLowerCase() })) { err_msg = "Email in use"; invalid_registration = true; }
 
   // Response is illegal, Return
-  if (invalid_registration) {
-    return {
-      success: false,
-      error_message: err_msg,
-    }
-  }
+  if (invalid_registration) { return failure(ERR.DUPLICATE_DATA, err_msg); }
 
   // Checks complete, insert
   // NOTE TO SELF: Display name is stored seperately due to the size concern 
@@ -58,11 +55,7 @@ async function register_user(username, email, password) {
   })
 
   // Success Payload
-  return {
-    success: true,
-    data: user_id,
-  }
-
+  return success(user_id);
 }
 
 /** check_level
@@ -73,38 +66,22 @@ async function check_level(user_id) {
   // Init
   const db = await mdb_connect();
   const users = db.collection("users");
-  let ob_id;
-  try {
-    ob_id = ObjectId.createFromHexString(user_id);  
-  }
-  catch (err) {
-    return {
-      success: false,
-      error_message: "User Id must be supplied"
-    }
-  }
+  const ob_id = get_ObjectID(user_id);
 
-  const level = await users.findOne({ _id: ob_id }).then((res) => { 
-    if(res) {
+  // Verification
+  if (!ob_id) { return failure(ERR.INVALID_OBJECT); }
+
+  // Fetch
+  const level = await users.findOne({ _id: ob_id }).then((res) => {
+    if (res) {
       return res.level;
     }
-    else {
-      return res;
-    }
-   })
+    return res;
+  })
 
-
-  if (level) {
-    return {
-      success: true,
-      data: level,
-    }
-  }
-  return {
-    success: false,
-    error_message: "User Not Found"
-  }
-
+  // Results
+  if (level) { return success(level); }
+  return failure(ERR.DATA_NOT_FOUND);
 }
 
 /** authorize_user
@@ -120,39 +97,18 @@ async function authorize_user(username, password) {
   const users = db.collection("users"); // User Table
   let user;
   let authenticated = false;
-  
+
   // Get User
-  if(isEmail) {
-    user = await users.findOne({primary_email: username});
-  }
-  else {
-    user = await users.findOne({username: username.toLowerCase()});
-  }
+  if (isEmail) { user = await users.findOne({ primary_email: username }); }
+  else { user = await users.findOne({ username: username.toLowerCase() }); }
 
   // Check Hash
-  if(user) {
-    authenticated = await bcrypt.compare(password, user.hashcode);
-  }
-  else {
-    return {
-      success: false,
-      error_message: "User not found"
-    }
-  }
+  if (user) { authenticated = await bcrypt.compare(password, user.hashcode); }
+  else { return failure(ERR.DATA_NOT_FOUND, "User not found"); }
 
   // Return payload
-  if(authenticated) {
-    return {
-      success: true,
-      data: user._id.toString()
-    }
-  }
-  else {
-    return {
-      success: false,
-      error_message: "Invalid Password"
-    }
-  }
+  if (authenticated) { return success(user._id.toString()); }
+  return failure(ERR.UNAUTHORIZED, "Invalid Password");
 }
 
 /** get_user
@@ -169,26 +125,12 @@ async function get_user(username) {
   let user = null; // User object, not directly returned so that we have the success state
 
   // Find the User
-  if (isEmail) {
-    user = await users.findOne({ primary_email: username.toLowerCase() }, { projection: proj })
-  }
-  else {
-    user = await users.findOne({ username: username.toLowerCase() }, { projection: proj })
-  }
+  if (isEmail) { user = await users.findOne({ primary_email: username.toLowerCase() }, { projection: proj }) }
+  else { user = await users.findOne({ username: username.toLowerCase() }, { projection: proj }) }
 
   // Return Payload
-  if (user) {
-    return {
-      success: true,
-      data: user,
-    }
-  }
-  else {
-    return {
-      success: false,
-      error_message: "User Not Found"
-    }
-  }
+  if (user) { return success(user); }
+  return failure(ERR.DATA_NOT_FOUND, "User Not Found");
 }
 
 /** get_user_by_id
@@ -205,29 +147,12 @@ async function get_user_by_id(user_id) {
   let user = null; // User object, not directly returned so that we have the success state
 
   // Find the User
-  if(user_oid) {
-    user = await users.findOne({_id: user_oid}, { projection: proj });
-  }
-  else {
-    return {
-      success: false,
-      error_message: "Invalid User ID",
-    }
-  }
+  if (user_oid) { user = await users.findOne({ _id: user_oid }, { projection: proj }); }
+  else { return failure(ERR.INVALID_OBJECT); }
 
   // Return Payload
-  if (user) {
-    return {
-      success: true,
-      data: user,
-    }
-  }
-  else {
-    return {
-      success: false,
-      error_message: "User Not Found"
-    }
-  }
+  if (user) { return success(user); }
+  return failure(ERR.DATA_NOT_FOUND, "User Not Found");
 }
 
 /** get_users
@@ -244,18 +169,8 @@ async function get_users() {
   const user_col = await users.find({}, { projection: { hashcode: 0 } }).toArray();
 
   // Return Payload
-  if (user_col) {
-    return {
-      success: true,
-      data: user_col,
-    }
-  }
-  else {
-    return {
-      success: false,
-      error_message: "Unknown Error"
-    }
-  }
+  if (user_col) { return success(user_col); }
+  return failure(ERR.UNKNOWN);
 }
 
 /** remove_user
@@ -267,18 +182,8 @@ async function remove_user(user_id) {
   // Init
   const db = await mdb_connect();
   const users = db.collection("users");
-  let obj_id;
-
-  // Catch invalid user_id supplied errors
-  try {
-    obj_id = ObjectId.createFromHexString(user_id);
-  }
-  catch (err) {
-    return {
-      success: false,
-      error_message: "User Id must be supplied"
-    }
-  }
+  const obj_id = get_ObjectID(user_id);
+  if (!obj_id) { return failure(ERR.INVALID_OBJECT); }
 
   // TODO Anonymize data once other endpoints are created
 
@@ -286,26 +191,10 @@ async function remove_user(user_id) {
   const result = await users.deleteOne({ _id: obj_id });
 
   if (result.acknowledged) {
-    if (result.deletedCount) {
-      return {
-        success: true,
-        data: user_id
-      }
-    }
-    else {
-      return {
-        success: false,
-        error_message: "No matching users",
-      }
-    }
+    if (result.deletedCount) { return success(user_id); }
+    else { return failure(ERR.DATA_NOT_FOUND, "No Matching Users"); }
   }
-  else { // Mongo side issue
-    return {
-      success: false,
-      error_message: "Server Error",
-    }
-  }
-
+  return failure(ERR.UNKNOWN);
 }
 
 export {

@@ -270,7 +270,7 @@ function util_check_test(response, pass_cond, test_num) {
       output = output + "Data: " + JSON.stringify(response.data);
     }
     else {
-      output = output + "Error: " + response.error_message;
+      output = output + "Error " + response.error_code + ": " + response.error_message;
     }
 
     if(!passing) {

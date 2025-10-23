@@ -4,7 +4,7 @@
 
 import { mdb_connect } from "../util/db_connection.js";
 import { check_level, get_user, get_user_by_id } from "./users.js";
-import { get_ObjectID, sanitize_book } from "./util.js";
+import { get_data, ERR, failure, get_ObjectID, sanitize_book, success } from "./util.js";
 
 /** add_book
  * Add a book to the collection
@@ -17,79 +17,32 @@ async function add_book(user_id, book) {
   const db = await mdb_connect();
   const books = db.collection("books");
   const oid = get_ObjectID(user_id);
-  let user = null;
+  if (!oid) { return failure(ERR.INVALID_OBJECT, "Invalid User ID"); }
+  const user = await get_user_by_id(user_id);
   let duplicate = null;
   let new_book = sanitize_book(book);
 
   // Check input params
-  if (!oid) {
-    return {
-      success: false,
-      error_message: "Invalid User ID supplied",
-      error_data: user_id
-    }
-  }
-  user = await get_user_by_id(user_id);
-  if (!user.success) {
-    return {
-      success: false,
-      error_message: "User does not exist",
-      error_data: user_id
-    }
-  }
-  if (!new_book) {
-    return {
-      success: false,
-      error_message: "Invalid Book data supplied"
-    }
-  }
-
+  if (!user.success) { return failure(user.error_code, user.error_message, user_id); }
+  if (!new_book) { return failure(ERR.INVALID_FORMAT, "Invalid Book Data Supplied"); }
   new_book.user_id = oid;
 
-  //console.log(JSON.stringify(new_book));
-
   // Verify necessary parameters are included
-  if (!new_book.title || !new_book.authors) {
-    return {
-      success: false,
-      error_message: "Missing required book data (Title and Authors)",
-    }
-  }
+  if (!new_book.title || !new_book.authors) { return failure(ERR.MISSING_DATA, "Missing required Book Data (Title or Authors)"); }
 
   // Check for duplicate unique identifiers (ISBN)
   if (new_book.isbn_10) {
     duplicate = await books.findOne({ isbn_10: new_book.isbn_10 })
-    if (duplicate) {
-      return {
-        success: false,
-        error_message: "Duplicate ISBN number",
-        error_data: duplicate
-      }
-    }
+    if (duplicate) { return failure(ERR.DUPLICATE_DATA, "Duplicate ISBN-10"); }
   }
   if (new_book.isbn_13) {
     duplicate = await books.findOne({ isbn_13: new_book.isbn_13 })
-    if (duplicate) {
-      return {
-        success: false,
-        error_message: "Duplicate ISBN number",
-        error_data: duplicate
-      }
-    }
+    if (duplicate) { return failure(ERR.DUPLICATE_DATA, "Duplicate ISBN-13"); }
   }
 
   // Insert book
-  const book_id = await books.insertOne(new_book).then((res) => {
-    return res.insertedId;
-  })
-
-  // Return result
-  if (book_id) {
-    return {
-      success: true,
-      data: book_id
-    }
-  }
+  try { return success(await books.insertOne(new_book).then((res) => { return res.insertedId; })) }
+  catch (err) { return failure(ERR.UNKNOWN, "Error inserting Book"); }
 }
 
 /** update_book
@@ -104,24 +57,13 @@ async function update_book(user_id, book_id, updated_book_values) {
   const db = await mdb_connect();
   const books = db.collection("books")
   const sanitized_updates = sanitize_book(updated_book_values);
-  const bo_id = get_ObjectID(book_id);
   const u_id = get_ObjectID(user_id);
-  const owner = await get_book(bo_id).then((res) => {
-    if (res.success) {
-      return res.data.user_id;
-    }
-    else {
-      return null;
-    }
-  });
+  const book = get_data(await get_book(book_id));
+  if (!book) { return failure(ERR.DATA_NOT_FOUND, "Book not Found"); }
+  const owner = book.user_id;
 
   // Error on invalid params
-  if (!(u_id && bo_id && updated_book)) {
-    return {
-      success: false,
-      error_message: "Invalid parameter(s)",
-    }
-  }
+  if (!(u_id && sanitized_updates)) { return failure(ERR.INVALID_FORMAT, "Invalid Parameter(s)"); }
 
   // Sanitize anything the sanatizer didn't grab (Other function for user, never update _id)
   delete sanitized_updates._id;
@@ -129,30 +71,14 @@ async function update_book(user_id, book_id, updated_book_values) {
 
   // Check user validity of request
   if (!(owner == u_id)) {
-    let user_ver = await check_level(user_id);
-    if (!(user_ver.success && (user_ver.data == "admin"))) {
-      return {
-        success: false,
-        error_message: "User not authorized to edit this book"
-      }
-    }
+    let user_ver = get_data(await check_level(user_id));
+    if (!(user_ver == "admin")) { return failure(ERR.UNAUTHORIZED, "User not authorized to edit this book"); }
   }
 
+  // Process Updates
   const result = await books.updateOne({ _id: bo_id }, sanitized_updates);
-
-  if (result.modifiedCount > 0) {
-    return {
-      success: true,
-      data: result.modifiedCount
-    }
-  }
-  else { // Shouldn't be reached without error on DB side, as book is fetched earlier
-    return {
-      success: false,
-      error_message: "No Updates processed"
-    }
-  }
-
+  if (result.modifiedCount > 0) { return success(result.modifiedCount); }
+  return failure(ERR.UNKNOWN, "No Updates Processed");
 }
 
 /** update_book_owner
@@ -166,73 +92,24 @@ async function update_book_owner(book_id, current_user, new_username) {
   // Init
   const db = await mdb_connect();
   const books = db.collection("books");
-  const current_id = get_ObjectID(current_user);
   const request_validated = false;
+  const new_user = get_data(await get_user(new_username));
+  if (!new_user) { return failure(ERR.DATA_NOT_FOUND, "Invalid New User"); }
+  const new_id = new_user._id;
+  const book = get_data(await get_book(book_id));
+  if (!book) { return failure(ERR.DATA_NOT_FOUND, "Invalid Book"); }
+  const book_owner = book.user_id;
+  const user_level = get_data(await check_level(current_user));
 
-  // Get book and its current user
-  const new_id = await get_user(new_username).then((res) => {
-    if (res.success) {
-      return res.data._id;
-    }
-    else {
-      return null;
-    }
-  })
+  // Request Validation
+  if (user_level == "admin") { request_validated = true; }
+  if (current_user == book_owner) { request_validated = true; }
+  if (!request_validated) { return failure(ERR.UNAUTHORIZED, "Invalid User, must be book owner or an admin"); }
 
-  if (!new_id) {
-    return {
-      success: false,
-      error_message: "Invalid new user",
-    }
-  }
-
-  const book_owner = await get_book(book_id).then((res) => {
-    if (res.success) {
-      return res.data.user_id.toString();
-    }
-    return false;
-  })
-  if (!book_owner) {
-    return {
-      success: false,
-      error_message: "Invalid book"
-    }
-  }
-
-  const user_level = await check_level(current_user).then((res) => {
-    if (res.success) {
-      return res.data;
-    }
-    return false;
-  })
-  if (user_level == "admin") {
-    request_validated = true;
-  }
-  if (current_user == book_owner) {
-    request_validated = true;
-  }
-  if (!request_validated) {
-    return {
-      success: false,
-      error_message: "Invalid Request User"
-    }
-  }
-
+  // Update Book
   const book_update_result = await books.updateOne({ _id: get_ObjectID(book) }, { $set: { user_id: new_id } });
-
-  if (book_update_result.modifiedCount) {
-    return {
-      success: true,
-      data: book_update_result.modifiedCount
-    }
-  }
-  else {
-    return {
-      success: false,
-      error_message: "Error updating book owner",
-      error_data: book_update_result
-    }
-  }
+  if (book_update_result.modifiedCount) { return success(book_update_result.modifiedCount); }
+  return failure(ERR.UNKNOWN, "Error updating book owner");
 }
 
 /** delete_book
@@ -244,54 +121,22 @@ async function update_book_owner(book_id, current_user, new_username) {
  * @return {Promise<Object>}
  */
 async function delete_book(user_id, book_id) {
-  // !TODO! Add owner delete own book if it is only in their own library
+  // !TODO! Add owner delete own book if it is only in their own library w/ override by admin
   // Init
   const db = await mdb_connect();
   const books = db.collection("books");
-  const bo_id = get_ObjectID(book_id);
-  const is_admin = await check_level(user_id).then((res) => {
-    if (res.success) {
-      return res.data == "admin";
-    }
-    return false;
-  });
-  const owner = await get_book(book_id).then((res) => {
-    if (res.success) {
-      return res.user_id;
-    }
-    return null;
-  });
-  // const book_owners = !TODO Implementation of Lib!
+  const book = get_data(await get_book(book_id));
+  if (!book) { return failure(ERR.DATA_NOT_FOUND, "Book Not Found"); }
+  const user_level = get_data(await check_level(user_id));
+  const owner = book.user_id;
 
-  if (!bo_id) {
-    return {
-      success: false,
-      error_message: "Invalid Book ID"
-    }
-  }
-
-  // Identity Verification (to be wrapped in verification for owner)
-  if (!is_admin) {
-    return {
-      success: false,
-      error_message: "Unauthorized User",
-    }
-  }
+  // Identity Verification
+  if (!(user_level == "admin")) { return failure(ERR.UNAUTHORIZED); }
 
   // Delete
   const result = await books.deleteOne({ _id: bo_id });
-  if (result.deletedCount > 0) {
-    return {
-      success: true,
-      data: result.deletedCount,
-    }
-  }
-  else {
-    return {
-      success: false,
-      error_message: "No Books Deleted",
-    }
-  }
+  if (result.deletedCount > 0) { return success(result.deletedCount); }
+  return failure(ERR.UNKNOWN, "No Books Deleted");
 }
 
 /** get_book
@@ -306,27 +151,12 @@ async function get_book(book_id) {
   const obj_id = get_ObjectID(book_id);
 
   // Verify ID
-  if (!obj_id) {
-    return {
-      success: false,
-      error_message: "Invalid book ID",
-    }
-  }
+  if (!obj_id) { return failure(ERR.INVALID_OBJECT, "Invalid Book ID"); }
 
   // Get Book
   const book = await books.findOne({ _id: obj_id });
-  if (book) {
-    return {
-      success: true,
-      data: book
-    }
-  }
-  else {
-    return {
-      success: false,
-      error_message: "Book not found",
-    }
-  }
+  if (book) { return success(book); }
+  return failure(ERR.DATA_NOT_FOUND);
 }
 
 /** search_book

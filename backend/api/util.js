@@ -143,42 +143,63 @@ function success(data) {
 
 /** failure
  * Shorthand return for failure objects
- * @param {string} error_message The Error to display on failure
- * @param {number} error_code
- * @param {any} error_data Error data for debugging or troubleshooting
+ * @param {number} error_code Error Code from ERR Array (Reset to ERR.UNKNOWN on unknown code)
+ * @param {string} [error_message] The Error to display on failure (default to message provided by error code)
+ * @param {any} [error_data] Error data for debugging or troubleshooting
  * @return {Object}
  */
-function failure(error_message, error_code = 500, error_data = null) {
-
-  if (Number(error_code) === NaN) {
-    error_code = 500;
-  }
-
-  return {
+function failure(error_code, custom_error_message = null, error_data = null) {
+  // Response Object Init
+  let res = {
     success: false,
-    error_message: error_message,
-    error_code: error_code,
-    error_data: error_data,
+    error_code: ERR.UNKNOWN,
+    error_message: error_messages.get(error_messages.get(ERR.UNKNOWN)),
   }
+
+  // Param Verification
+  if (error_messages.get(Number(error_code))) { res.error_code = Number(error_code); }
+  if (custom_error_message) { res.error_message = String(custom_error_message); }
+  else { res.error_message = error_messages.get(res.error_code); }
+  if (error_data) { res.error_data = error_data; }
+
+  return res;
 }
 
-/** clean_check
+/** get_data
  * Checks an object for positive on success, and returns null if not.  Returns data directly if successful
- * Allows the following: api_data = clean_check(await api_call()) rather than then chaining
+ * Allows the following: api_data = get_data(await api_call()) rather than then chaining
  * @param {Object} success_object Object returned by internal functions
  * @return {any | null} success_object.data or null if unsuccessful
  */
-function clean_check(success_object) {
-  if (success_object.success) {
-    return success_object.data;
-  }
+function get_data(success_object) {
+  if (success_object.success) { return success_object.data; }
   return null;
 }
+
+const ERR = {
+  "UNKNOWN": 800,
+  "UNAUTHORIZED": 801,
+  "DUPLICATE_DATA": 802,
+  "INVALID_OBJECT": 803,
+  "DATA_NOT_FOUND": 804,
+  "INVALID_FORMAT": 805,
+  "MISSING_DATA": 806
+}
+
+const error_messages = new Map()
+error_messages.set(800, "Unknown Error")
+error_messages.set(801, "User is not authorized to perform this action")
+error_messages.set(802, "Duplicate Unique Identifier supplied")
+error_messages.set(803, "Invalid Object ID")
+error_messages.set(804, "No Results")
+error_messages.set(805, "Invalid Format")
+error_messages.set(806, "Missing required data");
 
 export {
   get_ObjectID,
   sanitize_book,
   success,
   failure,
-  clean_check,
+  get_data,
+  ERR,
 }
