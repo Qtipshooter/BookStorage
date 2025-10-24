@@ -159,17 +159,51 @@ async function get_book(book_id) {
   return failure(ERR.DATA_NOT_FOUND);
 }
 
-/** search_book
- * Searches for a book based on supplied parameters
- * @param {Object} search_params
+/** search_books
+ * Simple search based on one search term looking through all available fields
+ * @param {Object} search_term
  * @return {Promise<Object>}
  */
-async function search_books(search_params) {
+async function search_books(search_term) {
   // Init
   const db = await mdb_connect();
   const books = db.collection("books");
+  const book_fields = [
+    "title",
+    "authors",
+    "genres",
+    "description",
+    "isbn_10",
+    "isbn_13",
+  ]
+  let query = { "$or": [] };
+  let response = {};
 
-  // 
+  // Verify Search Term
+  if (!(typeof search_term === "string")) { return failure(ERR.INVALID_FORMAT, "Search term is not a string"); }
+
+  // Build Query
+  for (let i = 0; i < book_fields.length; i++) {
+    let field_object = {}
+    field_object[book_fields[i]] = {
+      "$regex": search_term,
+      "$options": "i"
+    }
+    query.$or.push(field_object);
+  }
+
+  // Count of books before getting a cursor for the books
+  response.document_count = await books.countDocuments(query);
+  if (response.document_count == 0) { return failure(ERR.DATA_NOT_FOUND); }
+  
+
+  // Find matching books
+  response.cursor = await books.find(query, function(err, doc) {
+    console.log(doc.length);
+  });
+
+  // Return payload
+  return success(response);
 }
 
 export { add_book, update_book, update_book_owner, delete_book, get_book, search_books }
