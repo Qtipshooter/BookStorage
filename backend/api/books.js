@@ -159,6 +159,55 @@ async function get_book(book_id) {
   return failure(ERR.DATA_NOT_FOUND);
 }
 
+/** get_books
+ * Gets all the books in the database
+ * @param {string[]} [fields = null] Fields to return
+ * @param {number} limit - Limit of results to return
+ * @param {string} sort_field - Name of field to sort by (checked in function)
+ * @param {boolean} ascending - Sorting ascending or descending
+ * @return {Promise<Object>}
+ */
+async function get_books(fields = null, limit = 0, sort_field = "title", ascending = true) {
+  // Init
+  const db = await mdb_connect();
+  const books = db.collection("books");
+  const book_fields = [
+    "title",
+    "authors",
+    "genres",
+    "description",
+    "isbn_10",
+    "isbn_13",
+  ]
+  let find_options = { projection: { _id: 1 }, limit: 0 }
+  let sort_option = {}
+
+  // Verify data or default
+  if (fields && !(fields instanceof Array)) { return failure(ERR.INVALID_FORMAT, "Invalid fields format applied"); }
+  else { fields = []; }
+  if (limit && (Number(limit) == NaN || Number(limit < 0))) { return failure(ERR.INVALID_FORMAT, "Invalid limit supplied"); }
+  if (!book_fields.includes(sort_field)) { sort_field = "title"; }
+  if (ascending) { sort_option[sort_field] = 1; }
+  else { sort_option[sort_field] = -1; } // Descending
+
+  // Parse Data
+  for (let i = 0; i < fields.length; i++) {
+    if (book_fields.includes(fields[i])) { find_options.projection[fields[i]] = 1; }
+  }
+  find_options.limit = limit;
+
+
+  // Fetch Data
+  const result_count = await books.countDocuments({}, find_options.limit);
+  const response = await books.find({}, find_options).sort(sort_option);
+
+  // Return payload
+  return success({
+    document_count: result_count,
+    cursor: response
+  })
+}
+
 /** search_books
  * Simple search based on one search term looking through all available fields
  * @param {Object} search_term
@@ -195,10 +244,10 @@ async function search_books(search_term) {
   // Count of books before getting a cursor for the books
   response.document_count = await books.countDocuments(query);
   if (response.document_count == 0) { return failure(ERR.DATA_NOT_FOUND); }
-  
+
 
   // Find matching books
-  response.cursor = await books.find(query, function(err, doc) {
+  response.cursor = await books.find(query, function (err, doc) {
     console.log(doc.length);
   });
 
