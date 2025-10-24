@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "test": "set NODE_ENV=.test&&node test.js",
+    "test_menu": "set NODE_ENV=.test&&node menu_test.js",
     "build": "",
     "run_prod": "",
     "run_dev": "",
