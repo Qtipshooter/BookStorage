@@ -184,6 +184,7 @@ async function get_books(fields = null, limit = 0, sort_field = "title", ascendi
 
   // Verify data or default
   if (fields && !(fields instanceof Array)) { return failure(ERR.INVALID_FORMAT, "Invalid fields format applied"); }
+  else if (fields.includes("all")) { fields = book_fields.slice(); }
   if (limit && (Number(limit) == NaN || Number(limit < 0))) { return failure(ERR.INVALID_FORMAT, "Invalid limit supplied"); }
   if (!book_fields.includes(sort_field)) { sort_field = "title"; }
   if (ascending) { sort_option[sort_field] = 1; }
@@ -198,6 +199,7 @@ async function get_books(fields = null, limit = 0, sort_field = "title", ascendi
 
   // Fetch Data
   const result_count = await books.countDocuments({}, find_options.limit);
+  if (result_count == 0) { return failure(ERR.DATA_NOT_FOUND, "No Results"); }
   const response = await books.find({}, find_options).sort(sort_option);
 
   // Return payload
@@ -209,7 +211,7 @@ async function get_books(fields = null, limit = 0, sort_field = "title", ascendi
 
 /** search_books
  * Simple search based on one search term looking through all available fields
- * @param {Object} search_term
+ * @param {string} search_term
  * @return {Promise<Object>}
  */
 async function search_books(search_term) {

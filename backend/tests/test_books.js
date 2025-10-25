@@ -290,6 +290,7 @@ export async function test_books() {
 export async function menu_test_books() {
   let selection = "reset";
   let data = null;
+  let subinput = "";
 
   console.log("Entered book Menu!");
 
@@ -297,17 +298,30 @@ export async function menu_test_books() {
   do {
     switch (selection.toLowerCase()) {
       case "all":
-        data = await get_books(["title", "authors", "genres", "description", "isbn_10", "isbn_13"]);
+        data = await get_books(["all"]);
         if (data.success) {
           data = data.data;
           while (await data.cursor.hasNext()) {
             console.log(await data.cursor.next());
           }
         }
+        else {
+          console.log(data.error_message);
+        }
         break;
 
       case "search":
-        console.log("Work in progress . . .");
+        subinput = await ask("Term to search books for > ");
+        data = await search_books(subinput);
+        if(data.success) {
+          data = data.data;
+          while (await data.cursor.hasNext()) {
+            console.log(await data.cursor.next());
+          }
+        }
+        else {
+          console.log(data.error_message);
+        }
         break;
 
       case "add":
