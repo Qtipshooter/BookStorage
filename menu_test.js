@@ -1,23 +1,7 @@
-import {createInterface} from 'node:readline';
 import { test_all } from './backend/tests/test_all.js';
 import { mdb_connect } from './backend/util/db_connection.js';
-import { util_seed_test_database } from './backend/tests/util_test.js';
+import { util_seed_test_database, ask } from './backend/tests/util_test.js';
 
-
-
-
-const rl = createInterface({
-  input: process.stdin,
-  output: process.stdout,
-})
-
-async function ask(question) {
-  return new Promise((resolve) => {
-    rl.question(question, (answer) => {
-      resolve(answer);
-    });
-  });
-};
 
 let selection = "reset";
 const menu_db = await mdb_connect();

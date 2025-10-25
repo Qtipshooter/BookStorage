@@ -1,3 +1,4 @@
+import {createInterface} from 'node:readline';
 import bcrypt from "bcrypt";
 import dotenv from "dotenv"
 import { MongoClient } from "mongodb";
@@ -285,8 +286,23 @@ function util_check_test(response, pass_cond, test_num) {
   return passing;
 }
 
+async function ask(question) {
+  const rl = createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
+  return new Promise((resolve) => {
+    rl.question(question, (answer) => {
+      rl.close();
+      resolve(answer);
+    });
+  });
+};
+
 export {
   util_test_result_code,
   util_seed_test_database,
   util_check_test,
+  ask,
 }
