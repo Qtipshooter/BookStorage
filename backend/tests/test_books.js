@@ -2,10 +2,10 @@
 // Quinton Graham
 // Tests the books.js functions
 
-import { add_book, get_book } from "../api/books.js";
+import { add_book, update_book, update_book_owner, delete_book, get_book, get_books, search_books } from "../api/books.js";
 import { get_user } from "../api/users.js";
 import { get_ObjectID } from "../api/util.js";
-import { util_check_test } from "./util_test.js";
+import { util_check_test, ask } from "./util_test.js";
 
 
 async function test_add_book() {
@@ -207,14 +207,14 @@ async function test_add_book() {
   // Invalid Cases //
   // Duplicate Books
   test_cases.push({
-      uid: valid_uids[0],
-      book: valid_books[0],
-      cond: false,
+    uid: valid_uids[0],
+    book: valid_books[0],
+    cond: false,
   });
   test_cases.push({
-      uid: valid_uids[1],
-      book: valid_books[2],
-      cond: false,
+    uid: valid_uids[1],
+    book: valid_books[2],
+    cond: false,
   });
   // Invalid User, valid book
   for (let i = 0; i < invalid_uids.length && i < 5 /* Valid Book limit */; i++) {
@@ -270,14 +270,14 @@ async function test_get_book() {
       cond: false,
     },
   ]
-  
+
   // Run Tests
   console.log("-- Testing get_book --");
   for (let i = 0; i < test_cases.length; i++) {
     await get_book(test_cases[i].book_id).then((res) => { util_check_test(res, test_cases[i].cond, i + 1) });
   }
   console.log("-- Test get_book complete --");
-  
+
   // Return Output
   return passing;
 }
@@ -285,4 +285,62 @@ async function test_get_book() {
 export async function test_books() {
   await test_add_book();
   await test_get_book();
+}
+
+export async function menu_test_books() {
+  let selection = "reset";
+  let data = null;
+
+  console.log("Entered book Menu!");
+
+  // Book Menu
+  do {
+    switch (selection.toLowerCase()) {
+      case "all":
+        data = await get_books(["title", "authors", "genres", "description", "isbn_10", "isbn_13"]);
+        if (data.success) {
+          data = data.data;
+          while (await data.cursor.hasNext()) {
+            console.log(await data.cursor.next());
+          }
+        }
+        break;
+
+      case "search":
+        console.log("Work in progress . . .");
+        break;
+
+      case "add":
+        console.log("Work in progress . . .");
+        break;
+
+      case "remove":
+        console.log("Work in progress . . .");
+        break;
+
+      case "update":
+        console.log("Work in progress . . .");
+        break;
+
+      case "reset":
+        break;
+
+      default:
+        console.log("Invalid Selection")
+        break;
+    }
+
+    console.log();
+
+    // Menu and fetch next menu option
+    console.log("\n" +
+      `All:      Gets all books from the database` + "\n" +
+      `Search:   Searches all fields for a book` + "\n" +
+      `Add:      Adds book to database` + "\n" +
+      `Remove:   Removes a book from database` + "\n" +
+      `Update:   Updates a book with new data` + "\n" +
+      `Exit:     Back to main menu`)
+    selection = await ask("Option Selection > ")
+    console.log();
+  } while (selection.toLowerCase() != "exit");
 }

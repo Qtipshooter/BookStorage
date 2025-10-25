@@ -184,7 +184,6 @@ async function get_books(fields = null, limit = 0, sort_field = "title", ascendi
 
   // Verify data or default
   if (fields && !(fields instanceof Array)) { return failure(ERR.INVALID_FORMAT, "Invalid fields format applied"); }
-  else { fields = []; }
   if (limit && (Number(limit) == NaN || Number(limit < 0))) { return failure(ERR.INVALID_FORMAT, "Invalid limit supplied"); }
   if (!book_fields.includes(sort_field)) { sort_field = "title"; }
   if (ascending) { sort_option[sort_field] = 1; }
@@ -255,4 +254,4 @@ async function search_books(search_term) {
   return success(response);
 }
 
-export { add_book, update_book, update_book_owner, delete_book, get_book, search_books }
+export { add_book, update_book, update_book_owner, delete_book, get_book, search_books, get_books }

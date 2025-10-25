@@ -1,6 +1,7 @@
 import { test_all } from './backend/tests/test_all.js';
 import { mdb_connect } from './backend/util/db_connection.js';
 import { util_seed_test_database, ask } from './backend/tests/util_test.js';
+import { menu_test_books } from './backend/tests/test_books.js';
 
 
 let selection = "reset";
@@ -25,7 +26,9 @@ do {
     
     case "book":
     case "books":
-      console.log("Work in Progress. . .");
+      console.log("Entering Book Menu . . .");
+      await menu_test_books();
+      console.log("Returned to main menu!");
       break;
     
     case "lib":
@@ -50,7 +53,7 @@ do {
   console.log();
 
   // Menu and fetch next menu option
-  console.log(
+  console.log("\n" +
     `Initialize:  Set Database to initial state` + "\n" +
     `All:         Run all tests (some may fail if you have modified initial DB)` + "\n" +
     `Users:       Open User DB submenu` + "\n" +

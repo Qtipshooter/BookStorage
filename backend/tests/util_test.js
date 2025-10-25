@@ -285,7 +285,11 @@ function util_check_test(response, pass_cond, test_num) {
   console.log(output);
   return passing;
 }
-
+/** ask
+ * Gets user input while giving question as prompt
+ * @param {string} question 
+ * @returns {Promise<string>} user input
+ */
 async function ask(question) {
   const rl = createInterface({
     input: process.stdin,
