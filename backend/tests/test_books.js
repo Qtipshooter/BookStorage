@@ -290,6 +290,7 @@ export async function test_books() {
 export async function menu_test_books() {
   let selection = "reset";
   let data = null;
+  let book = {};
   let subinput = "";
 
   console.log("Entered book Menu!");
@@ -313,7 +314,7 @@ export async function menu_test_books() {
       case "search":
         subinput = await ask("Term to search books for > ");
         data = await search_books(subinput);
-        if(data.success) {
+        if (data.success) {
           data = data.data;
           while (await data.cursor.hasNext()) {
             console.log(await data.cursor.next());
@@ -326,6 +327,48 @@ export async function menu_test_books() {
 
       case "add":
         console.log("Work in progress . . .");
+
+        console.log("Input book data (enter nothing to ommit):");
+        book = {}
+        while (!book.title) {
+          book.title = await ask("Title > ");
+          if (!(book.title)) {
+            "Title must be supplied"
+          }
+        }
+
+        console.log("Enter Author(s) one per line:");
+        book.authors = [];
+        while (!book.authors.length) {
+          subinput = await ask("Author > ");
+          if (subinput) {
+            book.authors.push(subinput);
+          }
+          if (!book.authors.length) {
+            console.log("At least one author must be supplied");
+          }
+        }
+
+        console.log("Enter Genre(s) one per line:");
+        book.genres = [];
+        subinput = -1;
+        while (subinput) {
+          subinput = await ask("Genre > ");
+          if (subinput) {
+            book.genres.push(subinput);
+          }
+        }
+
+        subinput = await ask("Description > ");
+        if (subinput) { book.description = subinput; }
+        subinput = await ask("ISBN-10 > ");
+        if (subinput) { book.isbn_10 = subinput; }
+        subinput = await ask("ISBN-13 > ");
+        if (subinput) { book.isbn_13 = subinput; }
+
+        let user = await get_user("admin");
+        data = await add_book()
+
         break;
 
       case "remove":
