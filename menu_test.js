@@ -2,10 +2,13 @@ import { test_all } from './backend/tests/test_all.js';
 import { mdb_connect } from './backend/util/db_connection.js';
 import { util_seed_test_database, ask } from './backend/tests/util_test.js';
 import { menu_test_books } from './backend/tests/test_books.js';
+import { menu_test_users } from './backend/tests/test_users.js';
 
 
 let selection = "reset";
 const menu_db = await mdb_connect();
+
+// Login status and "Session" for the menu itself
 
 // Main Menu
 do {
@@ -21,7 +24,9 @@ do {
     
     case "user":
     case "users":
-      console.log("Work in Progress. . .");
+      console.log("Entering User Menu . . .");
+      await menu_test_users({});
+      console.log("Returned to main menu!");
       break;
     
     case "book":

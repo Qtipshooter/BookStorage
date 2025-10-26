@@ -1,5 +1,5 @@
-import { util_check_test } from "./util_test.js";
-import {register_user, check_level, get_user, get_users, remove_user, authorize_user} from "../api/users.js"
+import { util_check_test, ask } from "./util_test.js";
+import {register_user, check_level, get_user, get_users, remove_user, authorize_user, get_user_by_id} from "../api/users.js"
 
 // ------ TEST FUNCTIONS ------ //
 
@@ -331,6 +331,144 @@ async function test_remove_user() {
   return passing;
 }
 
+export async function menu_test_users(session) {
+  let data = null
+  let user;
+  let pass;
+  let subinput;
+  let email;
+  let selection = "reset";
+
+  do {
+    switch (selection.toLowerCase()) {
+      case "all":
+        data = await get_users();
+        if(data.success) {
+          data = data.data;
+          console.log ("Fetched users\n");
+          console.log(data);
+        }
+        else {
+          console.log(data.error_message);
+        }
+        break;
+
+      case "get":
+        subinput = await ask("User to search for > ");
+        data = await get_user(subinput);
+        if(data.success) {
+          data = data.data;
+          console.log(data);
+        }
+        else {
+          console.log(data.error_message);
+        }
+        break;
+
+      case "add":
+        user = await ask("Username > ");
+        email = await ask("Email    > ");
+        pass = await ask ("Password > ");
+        data = await register_user(user, email, pass);
+        if(data.success) {
+          data = data.data;
+          console.log("Successfully registered user " + user + " with id: " + data);
+        }
+        else {
+          console.log(data.error_message);
+        }
+        break;
+
+      case "remove":
+        subinput = await ask("User to remove > ");
+        data = await get_user(subinput);
+        if (data.success){
+          data = await remove_user(data);
+        }
+        else {
+          console.log(data.error_message);
+          break;
+        }
+
+        if(data.success) {
+          data = data.data;
+        }
+        else {
+          console.log(data.error_message);
+        }
+        break;
+
+      case "signin":
+        user = await ask("Username/Email > ");
+        pass = await ask("Password > ")
+        data = await authorize_user(user, pass);
+
+        if(data.success) {
+          data = data.data;
+          console.log("User Authorized!");
+          session._id = data;
+          console.log("User ID:    " + session._id);
+          data = await get_user_by_id(session._id);
+          if(data.success) {
+            data = data.data;
+            session.username = data.display_name;
+            session.email = data.email;
+            session.level = data.level;
+            console.log("Username:   " + session.username);
+            console.log("Email:      " + session.primary_email);
+            console.log("Perm Level: " + session.level);
+          }
+          else {
+            console.log("Unable to fetch other data" + data.error_message);
+          }
+        }
+        else {
+          console.log(data.error_message);
+        }
+        break;
+
+      case "signout":
+        session = {};
+        console.log("Session Deleted!");
+        break;
+      
+      // Current signin details
+      //
+
+      case "level":
+        if(data.success) {
+          data = data.data;
+        }
+        else {
+          console.log(data.error_message);
+        }
+        console.log("Work in Progress. . .");
+        break;
+
+      case "reset":
+        break;
+      
+      default:
+        console.log("Invalid Selection")
+        break;
+    }
+
+    console.log();
+
+    // Menu and fetch next menu option
+    console.log("\n" +
+      `All: Show all users in the database` + "\n" +
+      `Get: Find a user by username/email` + "\n" +
+      `Add: Add a new user` + "\n" +
+      `Remove: Remove a user` + "\n" +
+      `Signin/in: Login to a user account` + "\n" +
+      `Signout/out: Logout of user account` + "\n" +
+      `Exit:        Exit the menu`)
+    selection = await ask("Option Selection > ")
+    console.log();
+  } while(selection.toLowerCase() != "exit");
+}
+
 //tests 
 export async function test_users() {
   await test_register_user();
@@ -340,3 +478,4 @@ export async function test_users() {
   await test_check_level();
   await test_remove_user();
 }
+
