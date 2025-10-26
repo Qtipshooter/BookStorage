@@ -332,13 +332,14 @@ async function test_remove_user() {
 }
 
 export async function menu_test_users(session) {
-  let data = null
+  // Init
+  let selection = "reset";
+  let data;
   let user;
   let pass;
-  let subinput;
   let email;
-  let selection = "reset";
-
+  
+  // Menu Loop
   do {
     switch (selection.toLowerCase()) {
       case "all":
@@ -432,17 +433,26 @@ export async function menu_test_users(session) {
         console.log("Session Deleted!");
         break;
       
-      // Current signin details
-      //
+      case "session":
+        console.log("Current Session: ");
+        console.log(session);
+        break;
 
       case "level":
-        if(data.success) {
-          data = data.data;
+        if (session._id && session.level) {
+          console.log("Current user level: " + session.level);
+          break;
         }
-        else {
-          console.log(data.error_message);
+        if(session._id) {
+          data = await check_level(session._id);
+          if(data.success) {
+            session.level = data.data;
+            console.log("Current user level: " + session.level);
+          }
+          else {
+            console.log("Unable to get user level: " + data.error_message);
+          }
         }
-        console.log("Work in Progress. . .");
         break;
 
       case "reset":
@@ -457,16 +467,20 @@ export async function menu_test_users(session) {
 
     // Menu and fetch next menu option
     console.log("\n" +
-      `All: Show all users in the database` + "\n" +
-      `Get: Find a user by username/email` + "\n" +
-      `Add: Add a new user` + "\n" +
-      `Remove: Remove a user` + "\n" +
-      `Signin/in: Login to a user account` + "\n" +
+      `All:         Show all users in the database` + "\n" +
+      `Get:         Find a user by username/email` + "\n" +
+      `Add:         Add a new user` + "\n" +
+      `Remove:      Remove a user` + "\n" +
+      `Signin/in:   Login to a user account` + "\n" +
       `Signout/out: Logout of user account` + "\n" +
+      `Session:     Shows current session details` + "\n" +
+      `Level:       Shows permission level of signed in user` + "\n" +
       `Exit:        Exit the menu`)
     selection = await ask("Option Selection > ")
     console.log();
   } while(selection.toLowerCase() != "exit");
+
+  return session;
 }
 
 //tests 
