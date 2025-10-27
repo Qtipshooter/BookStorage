@@ -23,7 +23,7 @@ function get_ObjectID(o_id) {
  * Checks a supplied book object and filters out any invalid parameters.  Returns unsuccessful if no parameters are valid.  
  * Returns valid book object if available.  ObjectIDs are given as ObjectIDs rather than strings.  If conversion from string fails,
  * then they are omitted.  Fixes books with single author/genres to be in correct array format
- * @param {Object} original_book
+ * @param {Object} original_book Original book data supplied
  * @return {Object | null} sanitized book on success and null on failure
  */
 function sanitize_book(original_book) {
@@ -132,7 +132,7 @@ function sanitize_book(original_book) {
 /** success
  * Shorthand return for success objects
  * @param {any} data Whatever data will be returned in the success object
- * @return {Object}
+ * @return {Object} A success object with success = true and data = data
  */
 function success(data) {
   return {
@@ -176,6 +176,7 @@ function get_data(success_object) {
   return null;
 }
 
+// Error constants array for readable code rather than magic number codes
 const ERR = {
   "UNKNOWN": 800,
   "UNAUTHORIZED": 801,

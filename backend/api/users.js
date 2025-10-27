@@ -1,4 +1,3 @@
-import { ObjectId } from "mongodb";
 import dotenv from "dotenv"
 import { mdb_connect } from "../util/db_connection.js";
 import bcrypt from "bcrypt";
@@ -8,11 +7,12 @@ dotenv.config({ path: envpath })
 
 // ------ User Functions ------ //
 /** register_user
- * Registers a User and then logs in session
- * @param {string} username
- * @param {string} email
- * @param {string} password
- * @return {Promise<Object>}
+ * Performs first time registration for a user, including setting up their user account and
+ * their data in the library db.
+ * @param {string} username Username to register account with
+ * @param {string} email Email to register account with
+ * @param {string} password Clear password to resiter account with
+ * @return {Promise<Object>} On success, the id of the newly created user, on failure, error_message
  */
 async function register_user(username, email, password) {
   // Init
@@ -58,11 +58,12 @@ async function register_user(username, email, password) {
   return success(user_id);
 }
 
-/** check_level
- * @param {string} user_id
- * @return {Promise<Object>}
+/** get_level
+ * Checks the user level (admin/user/etc.)
+ * @param {string} user_id The id of the user to check
+ * @return {Promise<Object>} If found, the level of the user, otherwise error_message
  */
-async function check_level(user_id) {
+async function get_level(user_id) {
   // Init
   const db = await mdb_connect();
   const users = db.collection("users");
@@ -84,11 +85,12 @@ async function check_level(user_id) {
   return failure(ERR.DATA_NOT_FOUND);
 }
 
+//TODO update the return to have object rather than just id
 /** authorize_user
  * Verifies login information
- * @param {string} username
- * @param {string} password
- * @return {Promise<Object>}
+ * @param {string} username The username or email of the user to check
+ * @param {string} password The cleartext password of the user
+ * @return {Promise<Object>} On success, the user object, on failure, error_message
  */
 async function authorize_user(username, password) {
   // Init
@@ -112,9 +114,9 @@ async function authorize_user(username, password) {
 }
 
 /** get_user
- * Gets basic user information (administrative)
- * @param {string} username //Username or Email
- * @return {Promise<Object>}
+ * Gets basic user information
+ * @param {string} username The username or email of the user to get info for
+ * @return {Promise<Object>} On success, the user object, on failure, error_message
  */
 async function get_user(username) {
   // Init
@@ -134,9 +136,9 @@ async function get_user(username) {
 }
 
 /** get_user_by_id
- * Gets basic user information (administrative)
- * @param {string} user_id
- * @return {Promise<Object>}
+ * Gets basic user information
+ * @param {string} user_id The ID of the user to get info for
+ * @return {Promise<Object>} On success, the user object, on failure, error_message
  */
 async function get_user_by_id(user_id) {
   // Init
@@ -156,8 +158,8 @@ async function get_user_by_id(user_id) {
 }
 
 /** get_users
- * Gets basic user information (administrative)
- * @return {Promise<Object>}
+ * Gets basic user information for all users (administrative)
+ * @return {Promise<Object>} Returns an array of all the users
  */
 async function get_users() {
   // Init
@@ -173,10 +175,11 @@ async function get_users() {
   return failure(ERR.UNKNOWN);
 }
 
+//TODO Implement anonymizing
 /** remove_user
- * Removes user from database and anonymizes connected data
- * @param {string} user_id
- * @return {Promise<Object>} 
+ * Removes user from database and anonymizes or deletes connected data
+ * @param {string} user_id ID of the user to remove
+ * @return {Promise<Object>} Returns the id of removed user, or error_message on failure
  */
 async function remove_user(user_id) {
   // Init
@@ -199,7 +202,7 @@ async function remove_user(user_id) {
 
 export {
   register_user,
-  check_level,
+  get_level,
   get_user,
   get_user_by_id,
   get_users,

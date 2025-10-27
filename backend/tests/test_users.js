@@ -1,5 +1,5 @@
 import { util_check_test, ask } from "./util_test.js";
-import { register_user, check_level, get_user, get_users, remove_user, authorize_user, get_user_by_id } from "../api/users.js"
+import { register_user, get_level, get_user, get_users, remove_user, authorize_user, get_user_by_id } from "../api/users.js"
 
 // ------ TEST FUNCTIONS ------ //
 
@@ -176,7 +176,7 @@ async function test_authorize_user() {
   console.log("-- Test authorize_user complete --");
 }
 
-async function test_check_level() {
+async function test_get_level() {
 
   // Init
   let passing = true;
@@ -204,11 +204,11 @@ async function test_check_level() {
     test_cases.push({ user_id: invalids[i], cond: false });
   }
 
-  console.log("-- Testing check_level --");
+  console.log("-- Testing get_level --");
   for (let i = 0; i < test_cases.length; i++) {
-    await check_level(test_cases[i].user_id).then((res) => { util_check_test(res, test_cases[i].cond, i + 1) });
+    await get_level(test_cases[i].user_id).then((res) => { util_check_test(res, test_cases[i].cond, i + 1) });
   }
-  console.log("-- Test check_level complete --");
+  console.log("-- Test get_level complete --");
 }
 
 async function test_get_user() {
@@ -444,7 +444,7 @@ export async function menu_test_users(session) {
           break;
         }
         if (session._id) {
-          data = await check_level(session._id);
+          data = await get_level(session._id);
           if (data.success) {
             session.level = data.data;
             console.log("Current user level: " + session.level);
@@ -489,7 +489,7 @@ export async function test_users() {
   await test_get_user();
   await test_get_users();
   await test_authorize_user();
-  await test_check_level();
+  await test_get_level();
   await test_remove_user();
 }
 

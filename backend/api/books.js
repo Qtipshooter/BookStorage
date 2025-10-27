@@ -3,14 +3,14 @@
 // Book db functions for Book Storage Program
 
 import { mdb_connect } from "../util/db_connection.js";
-import { check_level, get_user, get_user_by_id } from "./users.js";
+import { get_level, get_user, get_user_by_id } from "./users.js";
 import { get_data, ERR, failure, get_ObjectID, sanitize_book, success } from "./util.js";
 
 /** add_book
- * Add a book to the collection
- * @param {string} user_id
- * @param {Object} book
- * @return {Promise<Object>}
+ * Add a book to the database
+ * @param {string} user_id The user adding the book
+ * @param {Object} book The data of the book to add
+ * @return {Promise<Object>} The ID of the newly created book
  */
 async function add_book(user_id, book) {
   // Init
@@ -47,10 +47,10 @@ async function add_book(user_id, book) {
 
 /** update_book
  * Updates a book from owner or admin.  Only updates supplied fields, overwrites supplied fields
- * @param {string} user_id
- * @param {string} book_id
- * @param {Object} updated_book_values
- * @return {Promise<Object>}
+ * @param {string} user_id The ID of the user updating the book.  Must be owner or admin
+ * @param {string} book_id The ID of the book to update
+ * @param {Object} updated_book_values The updated field/value pairs
+ * @return {Promise<Object>} Returns the updated book count, or error_message on failure
  */
 async function update_book(user_id, book_id, updated_book_values) {
   // Init
@@ -71,7 +71,7 @@ async function update_book(user_id, book_id, updated_book_values) {
 
   // Check user validity of request
   if (!(owner == u_id)) {
-    let user_ver = get_data(await check_level(user_id));
+    let user_ver = get_data(await get_level(user_id));
     if (!(user_ver == "admin")) { return failure(ERR.UNAUTHORIZED, "User not authorized to edit this book"); }
   }
 
@@ -83,9 +83,9 @@ async function update_book(user_id, book_id, updated_book_values) {
 
 /** update_book_owner
  * Updates owner from current user to new user or default user/admins only
- * @param {string} book_id
- * @param {string} current_user
- * @param {string} new_username
+ * @param {string} book_id The ID of the book to update the owner of
+ * @param {string} current_user The owner/admin of the book to authorize
+ * @param {string} new_username The new username to update the owner to
  * @return {Promise<Object>}
  */
 async function update_book_owner(book_id, current_user, new_username) {
@@ -99,7 +99,7 @@ async function update_book_owner(book_id, current_user, new_username) {
   const book = get_data(await get_book(book_id));
   if (!book) { return failure(ERR.DATA_NOT_FOUND, "Invalid Book"); }
   const book_owner = book.user_id;
-  const user_level = get_data(await check_level(current_user));
+  const user_level = get_data(await get_level(current_user));
 
   // Request Validation
   if (user_level == "admin") { request_validated = true; }
@@ -116,9 +116,9 @@ async function update_book_owner(book_id, current_user, new_username) {
  * Deletes a book from db
  * !Constraints -> requestor has to be owner, and book must be in no other collections OR 
  * requestor has to be admin and will delete from all collections.
- * @param {string} user_id
- * @param {string} book_id
- * @return {Promise<Object>}
+ * @param {string} user_id The user authorizing the delete (owner/admin)
+ * @param {string} book_id The ID of the book to delete
+ * @return {Promise<Object>} Returns the deleted count or error_message on failure
  */
 async function delete_book(user_id, book_id) {
   // !TODO! Add owner delete own book if it is only in their own library w/ override by admin
@@ -127,7 +127,7 @@ async function delete_book(user_id, book_id) {
   const books = db.collection("books");
   const book = get_data(await get_book(book_id));
   if (!book) { return failure(ERR.DATA_NOT_FOUND, "Book Not Found"); }
-  const user_level = get_data(await check_level(user_id));
+  const user_level = get_data(await get_level(user_id));
   const owner = book.user_id;
 
   // Identity Verification
@@ -140,9 +140,9 @@ async function delete_book(user_id, book_id) {
 }
 
 /** get_book
- * Gets book by supplied ID
- * @param {string} book_id
- * @return {Promise<Object>}
+ * Gets book data by supplied ID
+ * @param {string} book_id The ID of the book to find
+ * @return {Promise<Object>} Book object data or error_message on failure
  */
 async function get_book(book_id) {
   // Init
@@ -161,11 +161,11 @@ async function get_book(book_id) {
 
 /** get_books
  * Gets all the books in the database
- * @param {string[]} [fields = null] Fields to return
- * @param {number} limit - Limit of results to return
- * @param {string} sort_field - Name of field to sort by (checked in function)
- * @param {boolean} ascending - Sorting ascending or descending
- * @return {Promise<Object>}
+ * @param {string[]} [fields = null] Fields to return (Null for all)
+ * @param {number} limit Limit of results to return (0 for no limit)
+ * @param {string} sort_field Name of field to sort by (title by default)
+ * @param {boolean} ascending Sorting ascending or descending (ascending by default)
+ * @return {Promise<Object>} A cursor to all the book data returned with options selected, or error_message on failure
  */
 async function get_books(fields = null, limit = 0, sort_field = "title", ascending = true) {
   // Init
@@ -211,8 +211,8 @@ async function get_books(fields = null, limit = 0, sort_field = "title", ascendi
 
 /** search_books
  * Simple search based on one search term looking through all available fields
- * @param {string} search_term
- * @return {Promise<Object>}
+ * @param {string} search_term String of term to search through database for
+ * @return {Promise<Object>} Cursor to all books matching the search term, or error_message on failure
  */
 async function search_books(search_term) {
   // Init
