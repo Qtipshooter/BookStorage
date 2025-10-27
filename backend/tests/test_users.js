@@ -1,10 +1,10 @@
 import { util_check_test, ask } from "./util_test.js";
-import {register_user, check_level, get_user, get_users, remove_user, authorize_user, get_user_by_id} from "../api/users.js"
+import { register_user, check_level, get_user, get_users, remove_user, authorize_user, get_user_by_id } from "../api/users.js"
 
 // ------ TEST FUNCTIONS ------ //
 
 async function test_register_user() {
-  
+
   let passing = true;
 
   // Tests Array
@@ -86,14 +86,14 @@ async function test_register_user() {
   // Running Tests
   console.log("-- Testing register_user --");
   for (let i = 0; i < tests.length; i++) {
-    await register_user(tests[i].user, tests[i].email, tests[i].pass).then((res) => {util_check_test(res, tests[i].cond, i+1)});
+    await register_user(tests[i].user, tests[i].email, tests[i].pass).then((res) => { util_check_test(res, tests[i].cond, i + 1) });
   }
   console.log("-- Test register_user complete --");
   return passing;
 }
 
 async function test_authorize_user() {
-    // Init
+  // Init
   let passing = true;
 
   const test_cases = [
@@ -171,13 +171,13 @@ async function test_authorize_user() {
 
   console.log("-- Testing authorize_user --");
   for (let i = 0; i < test_cases.length; i++) {
-    await authorize_user(test_cases[i].user, test_cases[i].pass).then((res) => {util_check_test(res, test_cases[i].cond, i+1)});
+    await authorize_user(test_cases[i].user, test_cases[i].pass).then((res) => { util_check_test(res, test_cases[i].cond, i + 1) });
   }
   console.log("-- Test authorize_user complete --");
 }
 
 async function test_check_level() {
-  
+
   // Init
   let passing = true;
   let test_cases = [];
@@ -194,19 +194,19 @@ async function test_check_level() {
   // Get user_ids for valid users
   for (let i = 0; i < usernames.length; i++) {
     let user = await get_user(usernames[i]);
-    if(user.success) {
-      test_cases.push({user_id: user.data._id.toString(), cond: true});
+    if (user.success) {
+      test_cases.push({ user_id: user.data._id.toString(), cond: true });
     }
   }
 
   // Insert invalid tests
   for (let i = 0; i < invalids.length; i++) {
-    test_cases.push({user_id: invalids[i], cond: false});
+    test_cases.push({ user_id: invalids[i], cond: false });
   }
 
   console.log("-- Testing check_level --");
   for (let i = 0; i < test_cases.length; i++) {
-    await check_level(test_cases[i].user_id).then((res) => {util_check_test(res, test_cases[i].cond, i+1)});
+    await check_level(test_cases[i].user_id).then((res) => { util_check_test(res, test_cases[i].cond, i + 1) });
   }
   console.log("-- Test check_level complete --");
 }
@@ -277,18 +277,18 @@ async function test_get_user() {
   // Running Tests
   console.log("-- Testing get_user --");
   for (let i = 0; i < tests.length; i++) {
-    await get_user(tests[i].username).then((res) => {util_check_test(res, tests[i].cond, i+1)});
+    await get_user(tests[i].username).then((res) => { util_check_test(res, tests[i].cond, i + 1) });
   }
   console.log("-- Test get_user complete --");
 
   return passing;
 }
 
-async function test_get_users() { 
+async function test_get_users() {
   let passing = true;
-  
+
   console.log("-- Testing get_users --");
-  passing = await get_users().then((res) => { return util_check_test(res, true)});
+  passing = await get_users().then((res) => { return util_check_test(res, true) });
   console.log("-- Test get_users complete --");
   return passing;
 }
@@ -311,20 +311,20 @@ async function test_remove_user() {
   // Get user_ids for valid users, then send to deletion
   for (let i = 0; i < usernames.length; i++) {
     let user = await get_user(usernames[i]);
-    if(user.success) {
-      test_cases.push({user_id: user.data._id.toString(), cond: true});
+    if (user.success) {
+      test_cases.push({ user_id: user.data._id.toString(), cond: true });
     }
   }
 
   // Insert invalid tests
   for (let i = 0; i < invalids.length; i++) {
-    test_cases.push({user_id: invalids[i], cond: false});
+    test_cases.push({ user_id: invalids[i], cond: false });
   }
 
   // Running Tests
   console.log("-- Testing remove_user --");
   for (let i = 0; i < test_cases.length; i++) {
-    await remove_user(test_cases[i].user_id).then((res) => {util_check_test(res, test_cases[i].cond, i+1)});
+    await remove_user(test_cases[i].user_id).then((res) => { util_check_test(res, test_cases[i].cond, i + 1) });
   }
   console.log("-- Test remove_user complete --");
 
@@ -338,15 +338,15 @@ export async function menu_test_users(session) {
   let user;
   let pass;
   let email;
-  
+
   // Menu Loop
   do {
     switch (selection.toLowerCase()) {
       case "all":
         data = await get_users();
-        if(data.success) {
+        if (data.success) {
           data = data.data;
-          console.log ("Fetched users\n");
+          console.log("Fetched users\n");
           console.log(data);
         }
         else {
@@ -357,7 +357,7 @@ export async function menu_test_users(session) {
       case "get":
         subinput = await ask("User to search for > ");
         data = await get_user(subinput);
-        if(data.success) {
+        if (data.success) {
           data = data.data;
           console.log(data);
         }
@@ -369,9 +369,9 @@ export async function menu_test_users(session) {
       case "add":
         user = await ask("Username > ");
         email = await ask("Email    > ");
-        pass = await ask ("Password > ");
+        pass = await ask("Password > ");
         data = await register_user(user, email, pass);
-        if(data.success) {
+        if (data.success) {
           data = data.data;
           console.log("Successfully registered user " + user + " with id: " + data);
         }
@@ -383,7 +383,7 @@ export async function menu_test_users(session) {
       case "remove":
         subinput = await ask("User to remove > ");
         data = await get_user(subinput);
-        if (data.success){
+        if (data.success) {
           data = await remove_user(data);
         }
         else {
@@ -391,7 +391,7 @@ export async function menu_test_users(session) {
           break;
         }
 
-        if(data.success) {
+        if (data.success) {
           data = data.data;
         }
         else {
@@ -404,19 +404,19 @@ export async function menu_test_users(session) {
         pass = await ask("Password > ")
         data = await authorize_user(user, pass);
 
-        if(data.success) {
+        if (data.success) {
           data = data.data;
           console.log("User Authorized!");
           session._id = data;
           console.log("User ID:    " + session._id);
           data = await get_user_by_id(session._id);
-          if(data.success) {
+          if (data.success) {
             data = data.data;
             session.username = data.display_name;
-            session.email = data.email;
+            session.email = data.primary_email;
             session.level = data.level;
             console.log("Username:   " + session.username);
-            console.log("Email:      " + session.primary_email);
+            console.log("Email:      " + session.email);
             console.log("Perm Level: " + session.level);
           }
           else {
@@ -432,7 +432,7 @@ export async function menu_test_users(session) {
         session = {};
         console.log("Session Deleted!");
         break;
-      
+
       case "session":
         console.log("Current Session: ");
         console.log(session);
@@ -443,9 +443,9 @@ export async function menu_test_users(session) {
           console.log("Current user level: " + session.level);
           break;
         }
-        if(session._id) {
+        if (session._id) {
           data = await check_level(session._id);
-          if(data.success) {
+          if (data.success) {
             session.level = data.data;
             console.log("Current user level: " + session.level);
           }
@@ -457,7 +457,7 @@ export async function menu_test_users(session) {
 
       case "reset":
         break;
-      
+
       default:
         console.log("Invalid Selection")
         break;
@@ -478,7 +478,7 @@ export async function menu_test_users(session) {
       `Exit:        Exit the menu`)
     selection = await ask("Option Selection > ")
     console.log();
-  } while(selection.toLowerCase() != "exit");
+  } while (selection.toLowerCase() != "exit");
 
   return session;
 }

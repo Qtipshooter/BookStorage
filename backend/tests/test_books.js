@@ -287,7 +287,7 @@ export async function test_books() {
   await test_get_book();
 }
 
-export async function menu_test_books() {
+export async function menu_test_books(session) {
   let selection = "reset";
   let data = null;
   let book = {};
@@ -326,7 +326,10 @@ export async function menu_test_books() {
         break;
 
       case "add":
-        console.log("Work in progress . . .");
+        if (!session._id) {
+          console.log("You must login to a user first (User Menu)");
+          break;
+        }
 
         console.log("Input book data (enter nothing to ommit):");
         book = {}
@@ -339,7 +342,7 @@ export async function menu_test_books() {
 
         console.log("Enter Author(s) one per line:");
         book.authors = [];
-        while (!book.authors.length) {
+        while (!book.authors.length || subinput) {
           subinput = await ask("Author > ");
           if (subinput) {
             book.authors.push(subinput);
@@ -366,17 +369,128 @@ export async function menu_test_books() {
         subinput = await ask("ISBN-13 > ");
         if (subinput) { book.isbn_13 = subinput; }
 
-        let user = await get_user("admin");
-        data = await add_book()
+        data = await add_book(session._id, book);
+        console.log();
+
+        if (data.success) {
+          console.log("Book successfully added!\nID: " + data.data);
+        }
+        else {
+          console.log(data.error_message);
+        }
 
         break;
 
       case "remove":
-        console.log("Work in progress . . .");
+        if (!session._id) {
+          console.log("Need to be logged in for this option");
+          break;
+        }
+        subinput = await ask("Term to search books for > ");
+        data = await search_books(subinput);
+        if (data.success) {
+          data = data.data.cursor.toArray();
+          console.log("Please select an option from the following")
+          for (let i = 0; i < data.length; i++) {
+            console.log(i + "]  \"" + data[i].title + "\" by " + (data[i].authors.length > 1 ? (data[i].authors[0] + " et al.") : data[i].authors[0]));
+          }
+          do {
+            subinput = Number(await ask("Selection > "));
+            if (subinput === NaN) {
+              subinput = null;
+              console.log("Invalid Selection!");
+            }
+          } while (!subinput);
+
+          console.log("Deleting " + data[subinput].title);
+          data = await delete_book(session._id, data[subinput]._id);
+          if (data.success) {
+            console.log("Book deleted");
+          }
+          else {
+            console.log("Error deleting book: " + data.error_message);
+          }
+
+        }
+        else {
+          console.log(data.error_message);
+        }
         break;
 
       case "update":
-        console.log("Work in progress . . .");
+        if (!session._id) {
+          console.log("Need to be logged in for this option");
+          break;
+        }
+        subinput = await ask("Term to search books for > ");
+        data = await search_books(subinput);
+        if (data.success) {
+          data = data.data.cursor.toArray();
+          console.log("Please select an option from the following")
+          for (let i = 0; i < data.length; i++) {
+            console.log(i + "]  \"" + data[i].title + "\" by " + (data[i].authors.length > 1 ? (data[i].authors[0] + " et al.") : data[i].authors[0]));
+          }
+          do {
+            subinput = Number(await ask("Selection > "));
+            if (subinput === NaN) {
+              subinput = null;
+              console.log("Invalid Selection!");
+            }
+          } while (!subinput);
+
+          console.log("Please enter new data for " + data[subinput].title);
+          ///
+
+          book = {}
+          subinput = await ask("Title > ");
+          if (subinput) { book.title = subinput; }
+
+          console.log("Enter Author(s) one per line:");
+          book.authors = [];
+          subinput = -1;
+          while (subinput) {
+            subinput = await ask("Author > ");
+            if (subinput) {
+              book.authors.push(subinput);
+            }
+          }
+          if (!book.authors.length) {
+            delete book.authors;
+          }
+
+          console.log("Enter Genre(s) one per line:");
+          book.genres = [];
+          subinput = -1;
+          while (subinput) {
+            subinput = await ask("Genre > ");
+            if (subinput) {
+              book.genres.push(subinput);
+            }
+          }
+          if (!book.genres.length) {
+            delete book.authors;
+          }
+
+          subinput = await ask("Description > ");
+          if (subinput) { book.description = subinput; }
+          subinput = await ask("ISBN-10 > ");
+          if (subinput) { book.isbn_10 = subinput; }
+          subinput = await ask("ISBN-13 > ");
+          if (subinput) { book.isbn_13 = subinput; }
+
+          ///
+          data = await update_book(session._id, book);
+          if (data.success) {
+            console.log("Book updated");
+          }
+          else {
+            console.log("Error updating book: " + data.error_message);
+          }
+
+        }
+        else {
+          console.log(data.error_message);
+        }
         break;
 
       case "reset":
@@ -400,4 +514,6 @@ export async function menu_test_books() {
     selection = await ask("Option Selection > ")
     console.log();
   } while (selection.toLowerCase() != "exit");
+
+  return session;
 }
