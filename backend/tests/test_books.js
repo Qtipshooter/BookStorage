@@ -290,6 +290,7 @@ export async function test_books() {
 export async function menu_test_books(session) {
   let selection = "reset";
   let data = null;
+  let book_id;
   let book = {};
   let subinput = "";
 
@@ -422,29 +423,31 @@ export async function menu_test_books(session) {
           console.log("Need to be logged in for this option");
           break;
         }
+
         subinput = await ask("Term to search books for > ");
         data = await search_books(subinput);
         if (data.success) {
-          data = data.data.cursor.toArray();
+          data = await data.data.cursor.toArray();
           console.log("Please select an option from the following")
           for (let i = 0; i < data.length; i++) {
-            console.log(i + "]  \"" + data[i].title + "\" by " + (data[i].authors.length > 1 ? (data[i].authors[0] + " et al.") : data[i].authors[0]));
+            console.log((i+1) + "]  \"" + data[i].title + "\" by " + (data[i].authors.length > 1 ? (data[i].authors[0] + " et al.") : data[i].authors[0]));
           }
           do {
             subinput = Number(await ask("Selection > "));
-            if (subinput === NaN) {
+            if (subinput === NaN || subinput < 1 || subinput > data.length) {
               subinput = null;
               console.log("Invalid Selection!");
             }
           } while (!subinput);
+          subinput -= 1; // due to displaying them separately
+          book_id = data[subinput]._id;
 
           console.log("Please enter new data for " + data[subinput].title);
-          ///
-
+          
+          // Gather Book Data
           book = {}
           subinput = await ask("Title > ");
           if (subinput) { book.title = subinput; }
-
           console.log("Enter Author(s) one per line:");
           book.authors = [];
           subinput = -1;
@@ -457,7 +460,6 @@ export async function menu_test_books(session) {
           if (!book.authors.length) {
             delete book.authors;
           }
-
           console.log("Enter Genre(s) one per line:");
           book.genres = [];
           subinput = -1;
@@ -468,20 +470,19 @@ export async function menu_test_books(session) {
             }
           }
           if (!book.genres.length) {
-            delete book.authors;
+            delete book.genres;
           }
-
           subinput = await ask("Description > ");
           if (subinput) { book.description = subinput; }
           subinput = await ask("ISBN-10 > ");
           if (subinput) { book.isbn_10 = subinput; }
           subinput = await ask("ISBN-13 > ");
           if (subinput) { book.isbn_13 = subinput; }
+          // End Gather Book Data
 
-          ///
-          data = await update_book(session._id, book);
+          data = await update_book(session._id, book_id, book);
           if (data.success) {
-            console.log("Book updated");
+            console.log("Book successfully updated");
           }
           else {
             console.log("Error updating book: " + data.error_message);

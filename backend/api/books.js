@@ -70,13 +70,13 @@ async function update_book(user_id, book_id, updated_book_values) {
   delete sanitized_updates.user_id;
 
   // Check user validity of request
-  if (!(owner == u_id)) {
+  if (!(owner.equals(u_id))) {
     let user_ver = get_data(await get_level(user_id));
     if (!(user_ver == "admin")) { return failure(ERR.UNAUTHORIZED, "User not authorized to edit this book"); }
   }
 
   // Process Updates
-  const result = await books.updateOne({ _id: bo_id }, sanitized_updates);
+  const result = await books.updateOne({ _id: book._id }, {$set:sanitized_updates});
   if (result.modifiedCount > 0) { return success(result.modifiedCount); }
   return failure(ERR.UNKNOWN, "No Updates Processed");
 }
@@ -248,9 +248,7 @@ async function search_books(search_term) {
 
 
   // Find matching books
-  response.cursor = await books.find(query, function (err, doc) {
-    console.log(doc.length);
-  });
+  response.cursor = await books.find(query);
 
   // Return payload
   return success(response);

@@ -11,10 +11,12 @@ import { ObjectId } from "mongodb";
  */
 function get_ObjectID(o_id) {
   try {
+    if(o_id instanceof ObjectId) { return o_id; }
     return ObjectId.createFromHexString(o_id);
   }
   catch (err) {
     // Type error or format error
+    console.log(err);
     return null;
   }
 }
