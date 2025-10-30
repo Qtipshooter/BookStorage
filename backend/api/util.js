@@ -16,7 +16,6 @@ function get_ObjectID(o_id) {
   }
   catch (err) {
     // Type error or format error
-    console.log(err);
     return null;
   }
 }

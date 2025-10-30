@@ -76,7 +76,7 @@ async function update_book(user_id, book_id, updated_book_values) {
   }
 
   // Process Updates
-  const result = await books.updateOne({ _id: book._id }, {$set:sanitized_updates});
+  const result = await books.updateOne({ _id: book._id }, { $set: sanitized_updates });
   if (result.modifiedCount > 0) { return success(result.modifiedCount); }
   return failure(ERR.UNKNOWN, "No Updates Processed");
 }
@@ -92,7 +92,7 @@ async function update_book_owner(book_id, current_user, new_username) {
   // Init
   const db = await mdb_connect();
   const books = db.collection("books");
-  const request_validated = false;
+  let request_validated = false;
   const new_user = get_data(await get_user(new_username));
   if (!new_user) { return failure(ERR.DATA_NOT_FOUND, "Invalid New User"); }
   const new_id = new_user._id;
@@ -127,11 +127,17 @@ async function delete_book(user_id, book_id) {
   const books = db.collection("books");
   const book = get_data(await get_book(book_id));
   if (!book) { return failure(ERR.DATA_NOT_FOUND, "Book Not Found"); }
+  const bo_id = get_ObjectID(book_id);
   const user_level = get_data(await get_level(user_id));
   const owner = book.user_id;
+  const uo_id = get_ObjectID(user_id);
 
   // Identity Verification
-  if (!(user_level == "admin")) { return failure(ERR.UNAUTHORIZED); }
+  if (!(owner.equals(uo_id))) {
+    if (!(user_level == "admin")) {
+      return failure(ERR.UNAUTHORIZED);
+    }
+  }
 
   // Delete
   const result = await books.deleteOne({ _id: bo_id });
@@ -183,6 +189,7 @@ async function get_books(fields = null, limit = 0, sort_field = "title", ascendi
   let sort_option = {}
 
   // Verify data or default
+  if (!fields) {fields = [];}
   if (fields && !(fields instanceof Array)) { return failure(ERR.INVALID_FORMAT, "Invalid fields format applied"); }
   else if (fields.includes("all")) { fields = book_fields.slice(); }
   if (limit && (Number(limit) == NaN || Number(limit < 0))) { return failure(ERR.INVALID_FORMAT, "Invalid limit supplied"); }

@@ -94,6 +94,7 @@ async function get_level(user_id) {
  */
 async function authorize_user(username, password) {
   // Init
+  if (typeof username !== "string" || typeof password != "string") { return failure(ERR.INVALID_FORMAT, "Username/Password must be supplied as strings"); }
   const isEmail = username.indexOf("@") > 0; // Check if email
   const db = await mdb_connect(); // DB Con
   const users = db.collection("users"); // User Table
@@ -120,6 +121,7 @@ async function authorize_user(username, password) {
  */
 async function get_user(username) {
   // Init
+  if (typeof username !== "string") { return failure(ERR.INVALID_FORMAT, "Username/Email is not a string"); }
   const isEmail = username.indexOf("@") > 0; // Check if email
   const db = await mdb_connect(); // DB Con
   const users = db.collection("users"); // User table
