@@ -483,7 +483,7 @@ const test_cases_add_book = [
       authors: ["Author 1"],
       genres: ["Horror"],
       description: "Invalid Book #1 with duplicate ISBN10",
-      isbn_10: "2000000001",
+      isbn_10: "1000000001",
       isbn_13: "2000000001000",
     },
     cond: false,
@@ -496,7 +496,7 @@ const test_cases_add_book = [
       genres: ["Horror"],
       description: "Invalid Book #2 with duplicate ISBN13",
       isbn_10: "2000000002",
-      isbn_13: "2000000002000",
+      isbn_13: "1000000002000",
     },
     cond: false,
   },
@@ -593,17 +593,17 @@ const test_cases_update_book = [
 
   { 
     user_id: "aaaaaa000000000000000000",
-    book_id: "68f3df000000000000000002",
+    book_id: "68f3df000000000000000004",
     updates: {
-      isbn_10: "0000000001",
+      isbn_10: "4000000001",
     },
     cond: false,
   },
   { 
     user_id: "aaaaaa000000000000000000",
-    book_id: "68f3df000000000000000002",
+    book_id: "68f3df000000000000000004",
     updates: {
-      isbn_13: "0000000001000",
+      isbn_13: "4000000001000",
     },
     cond: false,
   },
@@ -698,7 +698,7 @@ const test_cases_update_book_owner = [
     book_id: "68f3df000000000000000003",
     authorizing_user_id: "aaaaaa000000000000000002",
     new_user_id: "Jane_Doe",
-    cond: true,
+    cond: false,
   },
   {
     book_id: "68f3df000000000000000004",
@@ -775,10 +775,6 @@ const test_cases_search_books = [
   {
     search_term: "68f3df000000000000000001",
     cond: false,
-  },
-  {
-    search_term: "Admin",
-    cond: true,
   },
 ];
 

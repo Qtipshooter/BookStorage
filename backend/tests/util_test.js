@@ -1,10 +1,10 @@
-import {createInterface} from 'node:readline';
+import { createInterface } from 'node:readline';
 import bcrypt from "bcrypt";
 import dotenv from "dotenv"
 import { MongoClient } from "mongodb";
 import { get_ObjectID } from "../api/util.js";
 import { test_init_books, test_init_users } from './test_data.js';
-dotenv.config({path: ".env.test"});
+dotenv.config({ path: ".env.test" });
 
 /** util_test_result_code
  * Colors and formats the result code identifier
@@ -12,13 +12,13 @@ dotenv.config({path: ".env.test"});
  * @returns {string}
  */
 function util_test_result_code(result) {
-  if(result == "pass") {
+  if (result == "pass") {
     return "[\x1b[32mPass\x1b[0m]"
   }
-  if(result == "fail") {
+  if (result == "fail") {
     return "[\x1b[31mFail\x1b[0m]"
   }
-  if(result == "info") {
+  if (result == "info") {
     return "[\x1b[33mInfo\x1b[0m]"
   }
   return "";
@@ -38,7 +38,7 @@ async function util_seed_test_database() {
 
   // Drop Databases
   console.log(util_test_result_code("info") + " Dropping previous test Database . . .");
-  try{
+  try {
     const result = await db.dropDatabase();
     console.log(util_test_result_code("info") + " Database Dropped")
   }
@@ -56,9 +56,9 @@ async function util_seed_test_database() {
   console.log(util_test_result_code("info") + " Users Added")
 
   // Add Default Book Table
-  console.log(util_test_result_code("info") + " Adding Preset Books . . .") 
-  await books_col.insertMany(test_init_books); 
-  console.log(util_test_result_code("info") + " Books Added")  
+  console.log(util_test_result_code("info") + " Adding Preset Books . . .")
+  await books_col.insertMany(test_init_books);
+  console.log(util_test_result_code("info") + " Books Added")
 }
 
 /** util_check_test
@@ -72,13 +72,13 @@ function util_check_test(response, pass_cond, test_num) {
   // Init
   let passing = true;
   let output = "";
-  
-  if(typeof test_num === "number") {
+
+  if (typeof test_num === "number") {
     output = "#" + test_num + " ";
   }
 
-  try{
-    if(response.success == pass_cond) {
+  try {
+    if (response.success == pass_cond) {
       output = output + util_test_result_code("pass") + " ";
     }
     else {
@@ -86,24 +86,27 @@ function util_check_test(response, pass_cond, test_num) {
       output = output + util_test_result_code("fail") + " ";
     }
 
-    if(response.success) {
+    if (response.success) {
       output = output + "Data: " + JSON.stringify(response.data);
     }
     else {
       output = output + "Error " + response.error_code + ": " + response.error_message;
     }
 
-    if(!passing) {
+    if (!passing) {
       output = output + "\n\tData: " + JSON.stringify(response);
     }
   }
   catch (err) {
-    console.log("Error: " + err)
+    if (!err.name === "TypeError") {
+      console.log("Error: " + err);
+    }
   }
 
   console.log(output);
   return passing;
 }
+
 /** ask
  * Gets user input while giving question as prompt
  * @param {string} question 

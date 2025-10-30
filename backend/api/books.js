@@ -61,9 +61,32 @@ async function update_book(user_id, book_id, updated_book_values) {
   const book = get_data(await get_book(book_id));
   if (!book) { return failure(ERR.DATA_NOT_FOUND, "Book not Found"); }
   const owner = book.user_id;
+  let sub_result;
 
   // Error on invalid params
   if (!(u_id && sanitized_updates)) { return failure(ERR.INVALID_FORMAT, "Invalid Parameter(s)"); }
+
+  // Check duplicated Data
+  if (sanitized_updates.isbn_10) {
+    // TODO Check for duplicate
+    sub_result = await find_books({ isbn_10: sanitized_updates.isbn_10 }).then((res) => {
+      if (res.success && res.data.document_count > 0) {
+        return true;
+      }
+      return false;
+    });
+    if (sub_result) { delete sanitized_updates.isbn_10; }
+  }
+  if (sanitized_updates.isbn_13) {
+    // TODO Check for duplicate
+    sub_result = await find_books({ isbn_13: sanitized_updates.isbn_13 }).then((res) => {
+      if (res.success && res.data.document_count > 0) {
+        return true;
+      }
+      return false;
+    });
+    if (sub_result) { delete sanitized_updates.isbn_13; }
+  }
 
   // Sanitize anything the sanatizer didn't grab (Other function for user, never update _id)
   delete sanitized_updates._id;
@@ -74,6 +97,8 @@ async function update_book(user_id, book_id, updated_book_values) {
     let user_ver = get_data(await get_level(user_id));
     if (!(user_ver == "admin")) { return failure(ERR.UNAUTHORIZED, "User not authorized to edit this book"); }
   }
+
+
 
   // Process Updates
   const result = await books.updateOne({ _id: book._id }, { $set: sanitized_updates });
@@ -98,6 +123,7 @@ async function update_book_owner(book_id, current_user, new_username) {
   const new_id = new_user._id;
   const book = get_data(await get_book(book_id));
   if (!book) { return failure(ERR.DATA_NOT_FOUND, "Invalid Book"); }
+  const bo_id = get_ObjectID(book_id);
   const book_owner = book.user_id;
   const user_level = get_data(await get_level(current_user));
 
@@ -107,9 +133,13 @@ async function update_book_owner(book_id, current_user, new_username) {
   if (!request_validated) { return failure(ERR.UNAUTHORIZED, "Invalid User, must be book owner or an admin"); }
 
   // Update Book
-  const book_update_result = await books.updateOne({ _id: get_ObjectID(book) }, { $set: { user_id: new_id } });
+  const book_update_result = await books.updateOne({ _id: bo_id }, { $set: { user_id: new_id } });
   if (book_update_result.modifiedCount) { return success(book_update_result.modifiedCount); }
-  return failure(ERR.UNKNOWN, "Error updating book owner");
+  return failure(ERR.UNKNOWN, "Error updating book owner", {
+    new_id: new_id,
+    book: book,
+
+  });
 }
 
 /** delete_book
@@ -189,7 +219,7 @@ async function get_books(fields = null, limit = 0, sort_field = "title", ascendi
   let sort_option = {}
 
   // Verify data or default
-  if (!fields) {fields = [];}
+  if (!fields) { fields = []; }
   if (fields && !(fields instanceof Array)) { return failure(ERR.INVALID_FORMAT, "Invalid fields format applied"); }
   else if (fields.includes("all")) { fields = book_fields.slice(); }
   if (limit && (Number(limit) == NaN || Number(limit < 0))) { return failure(ERR.INVALID_FORMAT, "Invalid limit supplied"); }
@@ -258,6 +288,32 @@ async function search_books(search_term) {
   response.cursor = await books.find(query);
 
   // Return payload
+  return success(response);
+}
+
+/** find_books
+ * Finds book based on specific fields being searched
+ * @param {Object} search_book Book formated like an updated_book_values object
+ * @param {boolean} [exact=false] Only exact matches on given fields
+ * @return {Promise<Object>} Cursor to all books matching the search term, or error_message on failure
+ */
+async function find_books(search_book, exact = false) {
+  // Init
+  const db = await mdb_connect();
+  const books = db.collection("books")
+  const sanitized_book = sanitize_book(search_book);
+  let response = {};
+  if (!sanitized_book) { return failure(ERR.INVALID_FORMAT, "Invalid search book"); }
+
+  if (!exact) {
+    for (const key in sanitized_book) {
+      sanitized_book[key] = RegExp(sanitized_book[key], "i");
+    }
+  }
+
+  response.document_count = await books.countDocuments(sanitized_book);
+  response.cursor = await books.find(sanitized_book);
+
   return success(response);
 }
 

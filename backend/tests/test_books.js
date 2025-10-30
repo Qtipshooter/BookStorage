@@ -26,7 +26,7 @@ async function test_add_book() {
 }
 
 async function test_update_book() {
-  let passing = false;
+  let passing = true;
 
   // Run Tests
   console.log("-- Testing update_book --");
@@ -40,7 +40,7 @@ async function test_update_book() {
 }
 
 async function test_update_book_owner() {
-  let passing = false;
+  let passing = true;
 
   // Run Tests
   console.log("-- Testing update_book_owner --");
@@ -54,7 +54,7 @@ async function test_update_book_owner() {
 }
 
 async function test_delete_book() {
-  let passing = false;
+  let passing = true;
 
   // Run Tests
   console.log("-- Testing delete_book --");
@@ -85,7 +85,7 @@ async function test_get_book() {
 }
 
 async function test_get_books() {
-  let passing = false;
+  let passing = true;
 
   // Run Tests
   console.log("-- Testing get_books --");
@@ -99,7 +99,7 @@ async function test_get_books() {
 }
 
 async function test_search_books() {
-  let passing = false;
+  let passing = true;
 
   // Run Tests
   console.log("-- Testing search_books --");
