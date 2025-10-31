@@ -258,7 +258,7 @@ export async function test_users() {
   if (!await test_remove_user()) { passing = false; }
   if (!await test_authorize_user()) { passing = false; }
   if (!await test_get_user_by_id()) { passing = false; }
-  console.log("\n" + util_test_result_code(passing ? "pass" : "fail") + "User Tests Complete\n");
+  console.log("\n" + util_test_result_code(passing ? "pass" : "fail") + " User Tests Complete\n");
   return passing;
 }
 

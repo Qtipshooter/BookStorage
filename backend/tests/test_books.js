@@ -121,7 +121,7 @@ export async function test_books() {
   if (!await test_get_book()) { passing = false; }
   if (!await test_get_books()) { passing = false; }
   if (!await test_search_books()) { passing = false; }
-  console.log("\n" + util_test_result_code(passing ? "pass" : "fail") + "Book Tests Complete\n");
+  console.log("\n" + util_test_result_code(passing ? "pass" : "fail") + " Book Tests Complete\n");
   return passing;
 }
 

@@ -3,6 +3,7 @@ import { mdb_connect } from './backend/util/db_connection.js';
 import { util_seed_test_database, ask } from './backend/tests/util_test.js';
 import { menu_test_books } from './backend/tests/test_books.js';
 import { menu_test_users } from './backend/tests/test_users.js';
+import { menu_test_library } from './backend/tests/test_libraries.js';
 
 
 // Init
@@ -39,7 +40,9 @@ do {
     case "lib":
     case "library":
     case "libraries":
-      console.log("Work in Progress. . .");
+      console.log("Entering Library Menu . . .");
+      session = await menu_test_library(session);
+      console.log("Returned to main menu!");
       break;
     
     case "clear":
