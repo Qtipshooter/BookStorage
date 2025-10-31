@@ -3,7 +3,7 @@ import bcrypt from "bcrypt";
 import dotenv from "dotenv"
 import { MongoClient } from "mongodb";
 import { get_ObjectID } from "../api/util.js";
-import { test_init_books, test_init_users } from './test_data.js';
+import { test_init_books, test_init_users, test_init_libraries } from './test_data.js';
 dotenv.config({ path: ".env.test" });
 
 /** util_test_result_code
@@ -35,6 +35,7 @@ async function util_seed_test_database() {
   const db = client.db();
   const users_col = db.collection("users");
   const books_col = db.collection("books");
+  const libraries_col = db.collection("libraries");
 
   // Drop Databases
   console.log(util_test_result_code("info") + " Dropping previous test Database . . .");
@@ -59,6 +60,11 @@ async function util_seed_test_database() {
   console.log(util_test_result_code("info") + " Adding Preset Books . . .")
   await books_col.insertMany(test_init_books);
   console.log(util_test_result_code("info") + " Books Added")
+
+  // Add Default Book Table
+  console.log(util_test_result_code("info") + " Adding Preset Libraries . . .")
+  await libraries_col.insertMany(test_init_libraries);
+  console.log(util_test_result_code("info") + " Libraries Added")
 }
 
 /** util_check_test

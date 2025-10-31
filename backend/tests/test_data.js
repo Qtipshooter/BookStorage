@@ -155,6 +155,24 @@ const test_init_books = [
   },
 ]
 
+const test_init_libraries = [
+  {
+    user_id: get_ObjectID("aaaaaa000000000000000000"),
+  },
+  {
+    user_id: get_ObjectID("aaaaaa000000000000000001"),
+  },
+  {
+    user_id: get_ObjectID("aaaaaa000000000000000002"),
+  },
+  {
+    user_id: get_ObjectID("aaaaaa000000000000000003"),
+  },
+  {
+    user_id: get_ObjectID("aaaaaa000000000000000004"),
+  },
+]
+
 
 /** Test Cases **/
 /** User Tests **/
@@ -778,9 +796,60 @@ const test_cases_search_books = [
   },
 ];
 
+/** Library Tests **/
+const test_cases_get_library = [
+  {
+    cond: true,
+  },
+]
+
+const test_cases_search_library = [
+  {
+    cond: true,
+  },
+]
+
+const test_cases_add_to_library = [
+  {
+    cond: true,
+  },
+]
+
+const test_cases_remove_from_library = [
+  {
+    cond: true,
+  },
+]
+
+const test_cases_delete_user_library = [
+  {
+    cond: true,
+  },
+]
+
+const test_cases_admin_remove_from_library = [
+  {
+    cond: true,
+  },
+]
+
+const test_cases_admin_remove_from_all_libraries = [
+  {
+    cond: true,
+  },
+]
+
+const test_cases_admin_get_library = [
+  {
+    cond: true,
+  },
+]
+
+
 export {
   test_init_users,
   test_init_books,
+  test_init_libraries,
   test_cases_register_user,
   test_cases_get_level,
   test_cases_get_user,

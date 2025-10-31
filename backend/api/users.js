@@ -21,6 +21,7 @@ async function register_user(username, email, password) {
   const pass_regex = /^(?=.*[A-Za-z])(?=.*\d).{8,128}$/; // Password -> 8-128 with a character and number assertation
   const db = await mdb_connect(); // Database connection
   const users = db.collection("users"); // User table
+  const libraries = db.collection("libraries"); // Library Table
   let err_msg = ""; // Return message in payload on error
   let invalid_registration = false; // For checking to send back invalid response
   const c_date = new Date(); // Creation Timestamp
@@ -53,6 +54,8 @@ async function register_user(username, email, password) {
   }).then((res) => {
     return res.insertedId;
   })
+
+  libraries.insertOne({ user_id: user_id })
 
   // Success Payload
   return success(user_id);
