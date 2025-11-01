@@ -66,8 +66,8 @@ export async function menu_test_library(session) {
         if (!response) { break; }
 
         // Function Output
-        while (await response.cursor.hasNext()) {
-          console.log(await response.cursor.next());
+        for (let i = 0; i < response.length; i++) {
+          console.log(response[i]);
         }
         break;
 

@@ -9,7 +9,7 @@ import { ERR, failure, get_ObjectID, success } from "./util.js";
 /** get_library
  * Gets current user's library
  * @param {string} user_id The user to get the library of
- * @return {Promise<Object>} Returns the cursor of books for this library
+ * @return {Promise<Object>} Returns the array of books for this library
  */
 async function get_library(user_id) {
   // Init
@@ -17,11 +17,36 @@ async function get_library(user_id) {
   const libraries = db.collection("libraries");
   const uo_id = get_ObjectID(user_id);
   if (!uo_id) { return failure(ERR.INVALID_FORMAT), "Invalid user ID"; }
+  const agg = [
+    {
+      '$match': {
+        'user_id': uo_id,
+      }
+    },
+    {
+      '$lookup': {
+        'from': 'books',
+        'localField': 'book_ids',
+        'foreignField': '_id',
+        'as': 'books'
+      }
+    },
+    { '$project': { '_id': 0, 'books': 1 } }
+  ]
 
   // Query
-  const response_data = await libraries.findOne({ user_id: uo_id })
-  if (response_data) { return success(response_data); }
-  return failure(ERR.UNKNOWN, null, response_data);
+  const response_data = await libraries.aggregate(agg).toArray();
+  if (!response_data.length) { 
+    await libraries.insertOne({user_id: uo_id});
+    return failure(ERR.DATA_NOT_FOUND, "No Library found for user, library created.");
+  }
+
+  // Check if there are books, then send books to book query
+  if (response_data[0].books.length) { 
+    return success(response_data[0].books);
+  }
+
+  return failure(ERR.DATA_NOT_FOUND, "No Books in Library", response_data);
 
 }
 
@@ -42,7 +67,9 @@ async function search_library(user_id, search_term) {
  * @return {Promise<Object>} Returns the success/fail state and the book_id/error_message
  */
 async function add_to_library(user_id, book_id) {
-
+  const db = await mdb_connect();
+  const libraries = db.collection("libraries");
+  
 }
 
 /** remove_from_library
