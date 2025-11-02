@@ -2,7 +2,8 @@
 // Quinton Graham
 // Library db functions for Book Storage program
 import { mdb_connect } from "../util/db_connection.js";
-import { ERR, failure, get_ObjectID, success } from "./util.js";
+import { get_level } from "./users.js";
+import { ERR, failure, get_data, get_ObjectID, success } from "./util.js";
 
 
 
@@ -130,12 +131,31 @@ async function remove_from_library(library_id, book_id) {
 }
 
 /** delete_user_library
- * @param {string} authorizing_user_id Library owner or an admin
- * @param {string} owner_id Owner of library to remove
+ * @param {string} library_id Library to be removed
+ * @param {string} owner_id Owner of library to remove (or admin)
  * @return {Promise<Object>}
  */
-async function delete_user_library(authorizing_user_id, owner_id) {
+async function delete_user_library(library_id, owner_id) {
+  // Init
+  const db = await mdb_connect();
+  const libraries = db.collection("libraries");
+  const lo_id = get_ObjectID(library_id);
+  const uo_id = get_ObjectID(owner_id);
 
+  // Verify Owner
+  const lib_to_del = await findOne({ _id: lo_id });
+  if (!lib_to_del) { return failure(ERR.DATA_NOT_FOUND, "Library does not exist"); }
+  if (!(uo_id.equals(lib_to_del.user_id))) {
+    const user_level = get_data(await get_level(uo_id));
+    if (!user_level == "admin") {
+      return failure(ERR.UNAUTHORIZED, "User not authorized to delete this library");
+    }
+  }
+
+  // Delete library
+  const result = libraries.deleteOne({ _id: lo_id });
+  if (!result?.deletedCount) { return failure(ERR.UNKNOWN, "Library not deleted", result); }
+  return success(result);
 }
 
 // ADMIN FUNCTIONS //
