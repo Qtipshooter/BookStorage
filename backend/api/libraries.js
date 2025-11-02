@@ -16,7 +16,7 @@ async function get_library(library_id) {
   const db = await mdb_connect();
   const libraries = db.collection("libraries");
   const lo_id = get_ObjectID(library_id);
-  if (!lo_id) { return failure(ERR.INVALID_FORMAT), "Invalid library ID"; }
+  if (!lo_id) { return failure(ERR.INVALID_FORMAT, "Invalid library ID"); }
   const agg = [
     {
       '$match': {
@@ -46,6 +46,26 @@ async function get_library(library_id) {
   }
 
   return failure(ERR.DATA_NOT_FOUND, "No Books in Library", response_data);
+
+}
+
+/** get_libraries
+ * Gets a user's libraries
+ * @param {string} user_id The user to get the libraries of
+ * @return {Promise<Object>} Returns an array containing the library details (Minus books)
+ */
+async function get_libraries(user_id) {
+  // Init
+  const db = await mdb_connect();
+  const libraries = db.collection("libraries");
+  const uo_id = get_ObjectID(user_id);
+  if (!uo_id) { return failure(ERR.INVALID_FORMAT, "Invalid user id"); }
+  const filter = { user_id: uo_id, }
+
+  // Find and return
+  const result = await find(filter).toArray();
+  if (!result.length) { return failure(ERR.DATA_NOT_FOUND, "No Libraries for User"); }
+  return success(result);
 
 }
 
