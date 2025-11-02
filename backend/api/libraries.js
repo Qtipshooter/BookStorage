@@ -36,12 +36,12 @@ async function get_library(library_id) {
 
   // Query
   const response_data = await libraries.aggregate(agg).toArray();
-  if (!response_data.length) { 
+  if (!response_data.length) {
     return failure(ERR.DATA_NOT_FOUND, "No books in library", response_data);
   }
 
   // Check if there are books, then send books to book query
-  if (response_data[0].books.length) { 
+  if (response_data[0].books.length) {
     return success(response_data[0].books);
   }
 
@@ -82,13 +82,29 @@ async function search_library(user_id, search_term) {
 
 /** add_to_library
  * Adds a book to the current user library
- * @param {string} user_id User library to add to
+ * @param {string} library_id User library to add to
  * @param {string} book_id The book to add
- * @return {Promise<Object>} Returns the success/fail state and the book_id/error_message
+ * @return {Promise<Object>} Returns the success/fail state and the update return/error_message
  */
-async function add_to_library(user_id, book_id) {
+async function add_to_library(library_id, book_id) {
+  // Init
   const db = await mdb_connect();
   const libraries = db.collection("libraries");
+  const books = db.collection("books");
+  const lo_id = get_ObjectID(library_id);
+  const bo_id = get_ObjectID(book_id);
+  if (!(lo_id && bo_id)) { return failure(ERR.INVALID_FORMAT, "Invalid library or book"); }
+
+  // Verifiy Existance of library and book, and applicability
+  if (!(await libraries.findOne({ _id: lo_id }) && await books.findOne({ _id: bo_id }))) {
+    return failure(ERR.DATA_NOT_FOUND, "Library or Book is invalid");
+  }
+  if ((await libraries.findOne({ _id: lo_id, book_ids: bo_id }))) { return failure(ERR.DUPLICATE_DATA, "Book already added to collection"); }
+
+  // Add book
+  const result = await libraries.updateOne({ _id: lo_id }, { $push: { book_ids: bo_id } });
+  if (result.modifiedCount) { return failure(ERR.UNKNOWN, "Document not modified"); }
+  return success(result);
 
 }
 
