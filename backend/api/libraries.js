@@ -103,18 +103,30 @@ async function add_to_library(library_id, book_id) {
 
   // Add book
   const result = await libraries.updateOne({ _id: lo_id }, { $push: { book_ids: bo_id } });
-  if (result.modifiedCount) { return failure(ERR.UNKNOWN, "Document not modified"); }
+  if (!result.modifiedCount) { return failure(ERR.UNKNOWN, "Document not modified"); }
   return success(result);
 
 }
 
 /** remove_from_library
- * @param {string} user_id User library to remove from
+ * @param {string} library_id User library to remove from
  * @param {string} book_id The book to remove
  * @return {Promise<Object>} Returns the success/fail state and the book_id/error_message
  */
-async function remove_from_library(user_id, book_id) {
+async function remove_from_library(library_id, book_id) {
+  // Init
+  const db = await mdb_connect();
+  const libraries = db.collection("libraries");
+  const lo_id = get_ObjectID(library_id);
+  const bo_id = get_ObjectID(book_id);
+  if (!(lo_id && bo_id)) { return failure(ERR.INVALID_FORMAT, "Invalid library or book id"); }
+  const filter = { _id: lo_id };
+  const updates = { $pull: { book_ids: bo_id }, };
 
+  // Remove the object from the array
+  const response = await collection.updateOne(filter, updates);
+  if (!response.modifiedCount) { return failure(ERR.UNKNOWN, "Book not removed"); }
+  return success(response);
 }
 
 /** delete_user_library
@@ -161,6 +173,7 @@ async function admin_get_library(admin_id, user_id) {
 
 export {
   get_library,
+  get_libraries,
   search_library,
   add_to_library,
   remove_from_library,
