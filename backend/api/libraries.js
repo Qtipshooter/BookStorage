@@ -160,17 +160,6 @@ async function delete_user_library(library_id, owner_id) {
 
 // ADMIN FUNCTIONS //
 
-/** admin_remove_from_library 
- * Removes a book from a user's library
- * @param {string} admin_id Logged in Admin ID
- * @param {string} owner_id Owner of library to delete from
- * @param {string} book_id ID of book to remove
- * @return {Promise<Object>} Returns the success/fail state and the book_id/error_message
- */
-async function admin_remove_from_library(admin_id, owner_id, book_id) {
-
-}
-
 /** admin_remove_from_all_libraries
  * Removes a book from all libraries in preparation to delete book
  * @param {string} admin_id ID of Authorizing Admin
@@ -178,17 +167,18 @@ async function admin_remove_from_library(admin_id, owner_id, book_id) {
  * @return {Promise<Object>} Returns the success/fail state and the book_id/error_message
  */
 async function admin_remove_from_all_libraries(admin_id, book_id) {
+  // Init
+  const db = await mdb_connect();
+  const libraries = db.collection("libraries");
+  const uo_id = get_ObjectID(admin_id);
+  const bo_id = get_ObjectID(book_id);
 
-}
+  // Verify Admin
+  const user_level = get_data(await get_level(uo_id));
+  if (!user_level == "admin") { return failure(ERR.UNAUTHORIZED, "User is not an admin"); }
 
-/** admin_get_library
- * Gets a users library
- * @param {string} admin_id
- * @param {string} user_id
- * @return {Promise<Object>} Returns the success/fail state and the book_collection/error_message
- */
-async function admin_get_library(admin_id, user_id) {
-
+  // Update libraries
+  return success(await libraries.updateMany({ book_ids: bo_id }, { $pull: { book_ids: bo_id } }));
 }
 
 export {
@@ -198,7 +188,5 @@ export {
   add_to_library,
   remove_from_library,
   delete_user_library,
-  admin_remove_from_library,
   admin_remove_from_all_libraries,
-  admin_get_library,
 }
