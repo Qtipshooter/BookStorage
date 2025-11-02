@@ -178,7 +178,7 @@ export async function menu_test_users(session) {
           if (data.success) {
             data = data.data;
             session.username = data.display_name;
-            session.email = data.primary_email;
+            session.email = data.email;
             session.level = data.level;
             console.log("Username:   " + session.username);
             console.log("Email:      " + session.email);

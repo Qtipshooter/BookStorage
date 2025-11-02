@@ -11,7 +11,7 @@ const test_init_users = [
     _id: get_ObjectID("aaaaaa000000000000000000"),
     display_name: "admin",
     username: "admin",
-    primary_email: "admin@admin.com",
+    email: "admin@admin.com",
     hashcode: await bcrypt.hash("P@55C0d3s", passes),
     created_date: create_date,
     level: "admin"
@@ -19,7 +19,7 @@ const test_init_users = [
   {
     display_name: "dev",
     username: "dev",
-    primary_email: "dev@admin.com",
+    email: "dev@admin.com",
     hashcode: await bcrypt.hash("2 Correct Horse Battery Staples", passes),
     created_date: create_date,
     level: "admin"
@@ -28,7 +28,7 @@ const test_init_users = [
     _id: get_ObjectID("aaaaaa000000000000000001"),
     display_name: "JohnDoe1",
     username: "johndoe1",
-    primary_email: "john.doe@email.com",
+    email: "john.doe@email.com",
     hashcode: await bcrypt.hash("Password1", passes),
     created_date: create_date,
     level: "user"
@@ -37,7 +37,7 @@ const test_init_users = [
     _id: get_ObjectID("aaaaaa000000000000000002"),
     display_name: "Jane_Doe",
     username: "jane_doe",
-    primary_email: "jane.doe@email.com",
+    email: "jane.doe@email.com",
     hashcode: await bcrypt.hash("H4rd3rP@55word", passes),
     created_date: create_date,
     level: "user"
@@ -46,7 +46,7 @@ const test_init_users = [
     _id: get_ObjectID("aaaaaa000000000000000003"),
     display_name: "Stewster",
     username: "stewster",
-    primary_email: "stewster@email.com",
+    email: "stewster@email.com",
     hashcode: await bcrypt.hash("Passcoding1", passes),
     created_date: create_date,
     level: "user"
@@ -55,7 +55,7 @@ const test_init_users = [
     _id: get_ObjectID("aaaaaa000000000000000004"),
     display_name: "Peters",
     username: "peters",
-    primary_email: "peters@email.com",
+    email: "peters@email.com",
     hashcode: await bcrypt.hash("Drippy3", passes),
     created_date: create_date,
     level: "user"

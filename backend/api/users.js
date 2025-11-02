@@ -35,7 +35,7 @@ async function register_user(username, email, password) {
 
   // Already in use checks
   if (await users.findOne({ username: username.toLowerCase() })) { err_msg = "Username in use"; invalid_registration = true; }
-  if (await users.findOne({ primary_email: email.toLowerCase() })) { err_msg = "Email in use"; invalid_registration = true; }
+  if (await users.findOne({ email: email.toLowerCase() })) { err_msg = "Email in use"; invalid_registration = true; }
 
   // Response is illegal, Return
   if (invalid_registration) { return failure(ERR.DUPLICATE_DATA, err_msg); }
@@ -47,7 +47,7 @@ async function register_user(username, email, password) {
   const user_id = await users.insertOne({
     display_name: username,
     username: username.toLowerCase(),
-    primary_email: email.toLowerCase(),
+    email: email.toLowerCase(),
     hashcode: passhash,
     created_date: c_date,
     level: "user"
@@ -105,7 +105,7 @@ async function authorize_user(username, password) {
   let authenticated = false;
 
   // Get User
-  if (isEmail) { user = await users.findOne({ primary_email: username }); }
+  if (isEmail) { user = await users.findOne({ email: username }); }
   else { user = await users.findOne({ username: username.toLowerCase() }); }
 
   // Check Hash
@@ -132,7 +132,7 @@ async function get_user(username) {
   let user = null; // User object, not directly returned so that we have the success state
 
   // Find the User
-  if (isEmail) { user = await users.findOne({ primary_email: username.toLowerCase() }, { projection: proj }) }
+  if (isEmail) { user = await users.findOne({ email: username.toLowerCase() }, { projection: proj }) }
   else { user = await users.findOne({ username: username.toLowerCase() }, { projection: proj }) }
 
   // Return Payload
