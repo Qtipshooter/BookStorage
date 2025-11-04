@@ -77,8 +77,76 @@ async function get_libraries(user_id) {
  * @param {string} search_term The search term to send to search function
  * @return {Promise<Object>} Returns the book(s) in an array
  */
-async function search_library(user_id, search_term) {
+async function search_library(library_id, search_term) {
+  // Init
+  const db = await mdb_connect();
+  const libraries = db.collection("libraries");
+  const lo_id = get_ObjectID(library_id);
+  search_term = String(search_term); // Sanitize
+  if (!lo_id) { return failure(ERR.INVALID_FORMAT, "Invalid Library ID"); }
+  const agg = [
+    {
+      $match: { _id: lo_id }
+    },
+    {
+      $lookup: {
+        from: "books",
+        localField: "book_ids",
+        foreignField: "_id",
+        as: "books",
+      }
+    },
+    {
+      $project: {
+        books: 1,
+        _id: 0
+      }
+    },
+    {
+      $unwind: "books",
+    },
+    {
+      $replaceRoot: { newRoot: "books" },
+    },
+    {
+      $match: {
+        $or: {
+          "title": {
+            $regex: search_term,
+            $options: "i",
+          },
+          "authors": {
+            $regex: search_term,
+            $options: "i",
+          },
+          "genres": {
+            $regex: search_term,
+            $options: "i",
+          },
+          "description": {
+            $regex: search_term,
+            $options: "i",
+          },
+          "isbn_10": {
+            $regex: search_term,
+            $options: "i",
+          },
+          "isbn_13": {
+            $regex: search_term,
+            $options: "i",
+          },
+        }
 
+      }
+    },
+
+
+  ]
+
+  // Get Books and Search Books
+  const results = await libraries.aggregate(agg).toArray();
+  if (!results.length) { return failure(ERR.DATA_NOT_FOUND, "No Results"); }
+  return success(results);
 }
 
 /** add_to_library
