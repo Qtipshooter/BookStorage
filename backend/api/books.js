@@ -219,7 +219,7 @@ async function get_books(fields = null, limit = 0, sort_field = "title", ascendi
   let sort_option = {}
 
   // Verify data or default
-  if (!fields) { fields = []; }
+  if (!fields) { fields = ["all"]; }
   if (fields && !(fields instanceof Array)) { return failure(ERR.INVALID_FORMAT, "Invalid fields format applied"); }
   else if (fields.includes("all")) { fields = book_fields.slice(); }
   if (limit && (Number(limit) == NaN || Number(limit < 0))) { return failure(ERR.INVALID_FORMAT, "Invalid limit supplied"); }
@@ -235,15 +235,11 @@ async function get_books(fields = null, limit = 0, sort_field = "title", ascendi
 
 
   // Fetch Data
-  const result_count = await books.countDocuments({}, find_options.limit);
-  if (result_count == 0) { return failure(ERR.DATA_NOT_FOUND, "No Results"); }
-  const response = await books.find({}, find_options).sort(sort_option);
+  const response = await books.find({}, find_options).sort(sort_option).toArray();
+  if (!response.length) { return failure(ERR.DATA_NOT_FOUND, "No Results", response); }
 
   // Return payload
-  return success({
-    document_count: result_count,
-    cursor: response
-  })
+  return success(response)
 }
 
 /** search_books
