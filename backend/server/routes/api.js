@@ -11,12 +11,8 @@ router.get("/books", (request, response) => {
   let resp_data = "<h3>Hello</h3>";
   get_books().then((book_response) => {
     if(book_response.success) {
-      console.log(book_response);
-      console.log(book_response.data);
-      console.log(book_response.data.length);
       for(let i = 0; i < book_response.data.length; i++) {
-        resp_data += "<h3>" + JSON.stringify(book_response.data[i]) + "</h3><br>";
-        console.log(book_response.data[i]);
+        resp_data += "<p>" + JSON.stringify(book_response.data[i]) + "</p><br>";
       }
     }
     else {
