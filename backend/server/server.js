@@ -27,4 +27,40 @@ app.get("/", (request, response) => {
   response.send("Hello from the server");
 });
 
+app.get("/home", (request, response) => {
+  response.send("To Be Implemented");
+});
+
+app.get("/about", (request, response) => {
+  response.send("To Be Implemented");
+});
+
+app.get("/login", (request, response) => {
+  response.send("To Be Implemented");
+});
+
+app.get("/signup", (request, response) => {
+  response.send("To Be Implemented");
+});
+
+app.get("/logout", (request, response) => {
+  response.send("To Be Implemented");
+});
+
+app.get("/profile", (request, response) => {
+  response.send("To Be Implemented");
+});
+
+app.get("/browse", (request, response) => {
+  response.send("To Be Implemented");
+});
+
+app.get("/libraries", (request, response) => {
+  response.send("To Be Implemented");
+});
+
+app.get("/books", (request, response) => {
+  response.send("To Be Implemented");
+});
+
 app.listen(port, () => { console.log("Server Started: Port " + port) });
