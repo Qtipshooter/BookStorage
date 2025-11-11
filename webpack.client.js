@@ -7,11 +7,13 @@ const __dirname = path.dirname(__filename);
 export default {
   mode: 'development',
   entry: {
-    home: './src/client/home.jsx',
-    about: './src/client/about.jsx'
+    /** auth_level/filename: ./src/page/file/location */
+    "public/home": "./src/pages/Home.jsx",
+    "public/about": "./src/pages/About.jsx",
+    "public/books": "./src/pages/Books.jsx",
   },
   output: {
-    path: path.resolve(__dirname, 'dist/public'),
+    path: path.resolve(__dirname, 'static'),
     filename: '[name].bundle.js',
     publicPath: '/static/'
   },

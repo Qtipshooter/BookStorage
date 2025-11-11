@@ -8,9 +8,9 @@ const __dirname = path.dirname(__filename);
 export default {
   mode: 'development',
   target: 'node',
-  entry: './server/index.js',
+  entry: './src/server.js',
   output: {
-    path: path.resolve(__dirname, 'dist'),
+    path: __dirname,
     filename: 'server.js',
   },
   externals: [nodeExternals()],
