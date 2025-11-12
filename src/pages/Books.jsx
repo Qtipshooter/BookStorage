@@ -1,12 +1,5 @@
-import React from 'react';
+import React from "react";
+import Books from "../components/Books";
+import { hydrateRoot } from "react-dom/client";
 
-
-const Books = () => (
-  <div>
-    <a href="/">Homepage</a>
-    <h1>Books Page</h1>
-    <p>Welcome to the Books page!</p>
-  </div>
-);
-
-export default Books;
+hydrateRoot(document.getElementById("root"), React.createElement(Books));

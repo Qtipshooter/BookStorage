@@ -8,9 +8,9 @@ export default {
   mode: 'development',
   entry: {
     /** auth_level/filename: ./src/page/file/location */
-    "public/home": "./src/pages/Home.jsx",
-    "public/about": "./src/pages/About.jsx",
-    "public/books": "./src/pages/Books.jsx",
+    "public/home": "./src/pages/home.jsx",
+    "public/about": "./src/pages/about.jsx",
+    "public/books": "./src/pages/books.jsx",
   },
   output: {
     path: path.resolve(__dirname, 'static'),

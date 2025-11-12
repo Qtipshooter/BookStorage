@@ -1,13 +1,5 @@
-import React from 'react';
-import T_Home from '../templates/T_Home';
+import React from "react";
+import Home from "../components/Home";
+import { hydrateRoot } from "react-dom/client";
 
-function Home() {
-  return (
-  <T_Home>
-    <h1>Home Page</h1>
-    <p>Welcome to the Home page!</p>
-  </T_Home>
-  )
-};
-
-export default Home;
+hydrateRoot(document.getElementById("root"), React.createElement(Home));
