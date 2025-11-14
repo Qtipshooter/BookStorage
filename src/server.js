@@ -9,9 +9,9 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 import { render_HTML } from './util/util.js';
-import Home from './components/Home.jsx';
-import About from './components/About.jsx';
-import Books from './components/Books.jsx';
+import Home from './pages/Home.jsx';
+import About from './pages/About.jsx';
+import Books from './pages/Books.jsx';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
