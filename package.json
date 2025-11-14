@@ -3,12 +3,16 @@
   "version": "1.0.0",
   "description": "Stores home library information",
   "main": "index.js",
-  "type": "module",
   "scripts": {
     "test": "set NODE_ENV=.test&&node test.js",
     "test_menu": "set NODE_ENV=.test&&node menu_test.js",
     "test_server": "set NODE_ENV=.test&&node ./backend/server/server.js",
-    "build": "",
+    "build:client": "webpack --config webpack.client.js",
+    "build:server": "webpack --config webpack.server.js",
+    "build": "npm run build:client && npm run build:server",
+    "start": "node server.js",
+    "watch:client": "webpack --config webpack.client.js --watch",
+    "watch:server": "webpack --config webpack.server.js --watch",
     "run_prod": "",
     "run_dev": "",
     "seed_prod": "",
@@ -20,6 +24,17 @@
     "bcrypt": "^6.0.0",
     "dotenv": "16.6.1",
     "express": "^5.1.0",
-    "mongodb": "^6.20.0"
+    "mongodb": "^6.20.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.28.5",
+    "@babel/preset-env": "^7.28.5",
+    "@babel/preset-react": "^7.28.5",
+    "babel-loader": "^10.0.0",
+    "webpack": "^5.102.1",
+    "webpack-cli": "^6.0.1",
+    "webpack-node-externals": "^3.0.0"
   }
 }

@@ -2,3 +2,6 @@ data/db
 .env*
 node_modules
 local*
+static/
+dist/
+server.js
