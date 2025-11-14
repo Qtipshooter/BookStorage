@@ -10,7 +10,7 @@ export function render_HTML(html_string, bundle_file) {
 
   return `<!DOCTYPE html>
     <html>
-      <head><title>SSR React App</title></head>
+      <head><title>Book Storage</title></head>
       <body>
         <div id="root">${html_string}</div>
         <script src="/static/${bundle_file}"></script>
