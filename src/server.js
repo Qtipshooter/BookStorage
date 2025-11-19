@@ -8,7 +8,7 @@ import { renderToString } from 'react-dom/server';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-import { render_HTML } from './util/util.js';
+import { render_HTML } from './server_modules/util.js';
 import Home from './pages/Home.jsx';
 import About from './pages/About.jsx';
 import Books from './pages/Books.jsx';
@@ -43,7 +43,11 @@ app.get('/about', (req, res) => {
 
 // Books page
 app.get('/books', (req, res) => {
-  res.send(render_HTML(renderToString(<Books />), "books.bundle.js", renderToString(<Default_Head />)));
+  let books_collection = [
+    {title:"Book 1"},
+    {title:"Book 2"},
+  ]
+  res.send(render_HTML(renderToString(<Books books={books_collection} />), "books.bundle.js", renderToString(<Default_Head />)));
 });
 
 app.listen(PORT, () => console.log(`Server started on PORT:${PORT}`));
