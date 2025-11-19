@@ -9,6 +9,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 import { render_HTML } from './server_modules/util.js';
+import BS_API from "./server_modules/api.js";
 import Home from './pages/Home.jsx';
 import About from './pages/About.jsx';
 import Books from './pages/Books.jsx';
@@ -29,6 +30,7 @@ app.use((req, res, next) => {
 /** Middleware/Connected routes */
 app.use(express.json());
 app.use('/static/', express.static(path.resolve(__dirname, "..", "static", "public")));
+app.use("/api", BS_API);
 
 /** Base Pages */
 // Home page

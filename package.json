@@ -4,9 +4,9 @@
   "description": "Stores home library information",
   "main": "index.js",
   "scripts": {
-    "test": "set NODE_ENV=.test&&node test.js",
-    "test_menu": "set NODE_ENV=.test&&node menu_test.js",
-    "test_server": "set NODE_ENV=.test&&node ./backend/server/server.js",
+    "test": "set NODE_ENV=test&&node test.js",
+    "test_menu": "set NODE_ENV=test&&node menu_test.js",
+    "test_server": "set NODE_ENV=test&&node ./backend/server/server.js",
     "build:client": "webpack --config webpack.client.js",
     "build:server": "webpack --config webpack.server.js",
     "build": "npm run build:client && npm run build:server",

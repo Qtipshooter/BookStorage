@@ -1,10 +1,14 @@
 import dotenv from "dotenv"
 import { MongoClient } from "mongodb"
 
-const envpath = `.env${process.env.NODE_ENV || ""}`;
+const envpath = `.env.${process.env.NODE_ENV || ""}`;
 dotenv.config({path: envpath})
 
 const connection_string = process.env.CONNECTION_STRING + process.env.DATABASE_NAME;
+console.log(envpath);
+console.log(process.env.CONNECTION_STRING);
+console.log(process.env.DATABASE_NAME);
+console.log(connection_string);
 const client = new MongoClient(connection_string);
 
 // shared connection

@@ -6,13 +6,24 @@ import BookList from "../components/BookList";
 export default function Books({ books }) {
 
   const [book_set, set_book_set] = useState(books);
-  useEffect(() => {
-    if (!book_set) {
-      set_book_set([{ title: "Re-Set Book" }]);
+  async function update_book_set() {
+    const res = await fetch("/api/books");
+    if (res.ok) {
+
     }
+  }
+  useEffect(() => {
+    async function update_book_set() {
+      const res = await fetch("/api/books");
+      console.log(res);
+      if (res.ok) {
+        const data = await res.json();
+        console.log(data);
+        set_book_set(data);
+      }
+    }
+    update_book_set();
   }, [])
-
-
 
   return (
     <T_Home>

@@ -201,7 +201,7 @@ async function get_book(book_id) {
  * @param {number} limit Limit of results to return (0 for no limit)
  * @param {string} sort_field Name of field to sort by (title by default)
  * @param {boolean} ascending Sorting ascending or descending (ascending by default)
- * @return {Promise<Object>} A cursor to all the book data returned with options selected, or error_message on failure
+ * @return {Promise<Object>} An array of all the book data returned with options selected, or error_message on failure
  */
 async function get_books(fields = null, limit = 0, sort_field = "title", ascending = true) {
   // Init
