@@ -1,14 +1,14 @@
 import React from "react";
 
-function BookTile({ book, type="list"}) {
+export default function BookTile({ book, type="list"}) {
   if(type=="grid") {
     return (
       <div className="book-tile">
         <div>GRID</div>
         <div>Cover</div>
-        <div>Rating</div>
+        <div>{book.rating}</div>
         <div>{book.title}</div>
-        <div>Author(s)</div>
+        <div>{book.author}</div>
         <div>Add to Library Button</div>
       </div>
     )
@@ -18,15 +18,13 @@ function BookTile({ book, type="list"}) {
       <div className="book-tile">
         <div>LIST</div>
         <div>Cover</div>
-        <div>Rating</div>
+        <div>{book.rating}</div>
         <div>{book.title}</div>
-        <div>Author(s)</div>
-        <div>ISBN if 13 then 13 else 10 else blank</div>
-        <div>Description else "No Description Added"</div>
+        <div>{book.author}</div>
+        <div>{book.isbn_13 ? book.isbn_13 : (book.isbn_10 ? book.isbn_10 : "No ISBN Added")}</div>
+        <div>{book.description ? book.description : "No Description Provided"}</div>
         <div>Add To Library button</div>
       </div>
     )
   }
 }
-
-export default BookTile;
