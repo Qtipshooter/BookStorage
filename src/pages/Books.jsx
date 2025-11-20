@@ -6,12 +6,6 @@ import BookList from "../components/BookList";
 export default function Books({ books }) {
 
   const [book_set, set_book_set] = useState(books);
-  async function update_book_set() {
-    const res = await fetch("/api/books");
-    if (res.ok) {
-
-    }
-  }
   useEffect(() => {
     async function update_book_set() {
       const res = await fetch("/api/books");
