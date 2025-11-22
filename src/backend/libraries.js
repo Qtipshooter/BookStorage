@@ -3,7 +3,7 @@
 // Library db functions for Book Storage program
 import { mdb_connect } from "./util.js";
 import { get_level } from "./users.js";
-import { ERR, failure, get_data, get_ObjectID, success } from "./util.js";
+import { BS_Error, get_data, get_ObjectID, success } from "./util.js";
 
 
 
@@ -17,7 +17,7 @@ async function get_library(library_id) {
   const db = await mdb_connect();
   const libraries = db.collection("libraries");
   const lo_id = get_ObjectID(library_id);
-  if (!lo_id) { return failure(ERR.INVALID_FORMAT, "Invalid library ID"); }
+  if (!lo_id) { throw new BS_Error(BS_Error.ERR.INVALID_FORMAT, "Invalid library ID"); }
   const agg = [
     {
       '$match': {
@@ -38,7 +38,7 @@ async function get_library(library_id) {
   // Query
   const response_data = await libraries.aggregate(agg).toArray();
   if (!response_data.length) {
-    return failure(ERR.DATA_NOT_FOUND, "No books in library", response_data);
+    throw new BS_Error(BS_Error.ERR.DATA_NOT_FOUND, "No books in library", response_data);
   }
 
   // Check if there are books, then send books to book query
@@ -46,7 +46,7 @@ async function get_library(library_id) {
     return success(response_data[0].books);
   }
 
-  return failure(ERR.DATA_NOT_FOUND, "No Books in Library", response_data);
+  throw new BS_Error(BS_Error.ERR.DATA_NOT_FOUND, "No Books in Library", response_data);
 
 }
 
@@ -60,12 +60,12 @@ async function get_libraries(user_id) {
   const db = await mdb_connect();
   const libraries = db.collection("libraries");
   const uo_id = get_ObjectID(user_id);
-  if (!uo_id) { return failure(ERR.INVALID_FORMAT, "Invalid user id"); }
+  if (!uo_id) { throw new BS_Error(BS_Error.ERR.INVALID_FORMAT, "Invalid user id"); }
   const filter = { user_id: uo_id, }
 
   // Find and return
   const result = await find(filter).toArray();
-  if (!result.length) { return failure(ERR.DATA_NOT_FOUND, "No Libraries for User"); }
+  if (!result.length) { throw new BS_Error(BS_Error.ERR.DATA_NOT_FOUND, "No Libraries for User"); }
   return success(result);
 
 }
@@ -83,7 +83,7 @@ async function search_library(library_id, search_term) {
   const libraries = db.collection("libraries");
   const lo_id = get_ObjectID(library_id);
   search_term = String(search_term); // Sanitize
-  if (!lo_id) { return failure(ERR.INVALID_FORMAT, "Invalid Library ID"); }
+  if (!lo_id) { throw new BS_Error(BS_Error.ERR.INVALID_FORMAT, "Invalid Library ID"); }
   const agg = [
     {
       $match: { _id: lo_id }
@@ -145,7 +145,7 @@ async function search_library(library_id, search_term) {
 
   // Get Books and Search Books
   const results = await libraries.aggregate(agg).toArray();
-  if (!results.length) { return failure(ERR.DATA_NOT_FOUND, "No Results"); }
+  if (!results.length) { throw new BS_Error(BS_Error.ERR.DATA_NOT_FOUND, "No Results"); }
   return success(results);
 }
 
@@ -162,17 +162,17 @@ async function add_to_library(library_id, book_id) {
   const books = db.collection("books");
   const lo_id = get_ObjectID(library_id);
   const bo_id = get_ObjectID(book_id);
-  if (!(lo_id && bo_id)) { return failure(ERR.INVALID_FORMAT, "Invalid library or book"); }
+  if (!(lo_id && bo_id)) { throw new BS_Error(BS_Error.ERR.INVALID_FORMAT, "Invalid library or book"); }
 
   // Verifiy Existance of library and book, and applicability
   if (!(await libraries.findOne({ _id: lo_id }) && await books.findOne({ _id: bo_id }))) {
-    return failure(ERR.DATA_NOT_FOUND, "Library or Book is invalid");
+    throw new BS_Error(BS_Error.ERR.DATA_NOT_FOUND, "Library or Book is invalid");
   }
-  if ((await libraries.findOne({ _id: lo_id, book_ids: bo_id }))) { return failure(ERR.DUPLICATE_DATA, "Book already added to collection"); }
+  if ((await libraries.findOne({ _id: lo_id, book_ids: bo_id }))) { throw new BS_Error(BS_Error.ERR.DUPLICATE_DATA, "Book already added to collection"); }
 
   // Add book
   const result = await libraries.updateOne({ _id: lo_id }, { $push: { book_ids: bo_id } });
-  if (!result.modifiedCount) { return failure(ERR.UNKNOWN, "Document not modified"); }
+  if (!result.modifiedCount) { throw new BS_Error(BS_Error.ERR.UNKNOWN, "Document not modified"); }
   return success(result);
 
 }
@@ -188,13 +188,13 @@ async function remove_from_library(library_id, book_id) {
   const libraries = db.collection("libraries");
   const lo_id = get_ObjectID(library_id);
   const bo_id = get_ObjectID(book_id);
-  if (!(lo_id && bo_id)) { return failure(ERR.INVALID_FORMAT, "Invalid library or book id"); }
+  if (!(lo_id && bo_id)) { throw new BS_Error(BS_Error.ERR.INVALID_FORMAT, "Invalid library or book id"); }
   const filter = { _id: lo_id };
   const updates = { $pull: { book_ids: bo_id }, };
 
   // Remove the object from the array
   const response = await collection.updateOne(filter, updates);
-  if (!response.modifiedCount) { return failure(ERR.UNKNOWN, "Book not removed"); }
+  if (!response.modifiedCount) { throw new BS_Error(BS_Error.ERR.UNKNOWN, "Book not removed"); }
   return success(response);
 }
 
@@ -212,17 +212,17 @@ async function delete_user_library(library_id, owner_id) {
 
   // Verify Owner
   const lib_to_del = await findOne({ _id: lo_id });
-  if (!lib_to_del) { return failure(ERR.DATA_NOT_FOUND, "Library does not exist"); }
+  if (!lib_to_del) { throw new BS_Error(BS_Error.ERR.DATA_NOT_FOUND, "Library does not exist"); }
   if (!(uo_id.equals(lib_to_del.user_id))) {
     const user_level = get_data(await get_level(uo_id));
     if (!user_level == "admin") {
-      return failure(ERR.UNAUTHORIZED, "User not authorized to delete this library");
+      throw new BS_Error(BS_Error.ERR.UNAUTHORIZED, "User not authorized to delete this library");
     }
   }
 
   // Delete library
   const result = libraries.deleteOne({ _id: lo_id });
-  if (!result?.deletedCount) { return failure(ERR.UNKNOWN, "Library not deleted", result); }
+  if (!result?.deletedCount) { throw new BS_Error(BS_Error.ERR.UNKNOWN, "Library not deleted", result); }
   return success(result);
 }
 
@@ -243,7 +243,7 @@ async function admin_remove_from_all_libraries(admin_id, book_id) {
 
   // Verify Admin
   const user_level = get_data(await get_level(uo_id));
-  if (!user_level == "admin") { return failure(ERR.UNAUTHORIZED, "User is not an admin"); }
+  if (!user_level == "admin") { throw new BS_Error(BS_Error.ERR.UNAUTHORIZED, "User is not an admin"); }
 
   // Update libraries
   return success(await libraries.updateMany({ book_ids: bo_id }, { $pull: { book_ids: bo_id } }));
