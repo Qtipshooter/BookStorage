@@ -17,32 +17,32 @@ async function add_book(user_id, book) {
   const db = await mdb_connect();
   const books = db.collection("books");
   const oid = get_ObjectID(user_id);
-  if (!oid) { return failure(ERR.INVALID_OBJECT, "Invalid User ID"); }
+  if (!oid) { throw new BS_Error(BS_Error.ERR.INVALID_OBJECT, "Invalid User ID"); }
   const user = await get_user_by_id(user_id);
   let duplicate = null;
   let new_book = sanitize_book(book);
 
   // Check input params
-  if (!user.success) { return failure(user.error_code, user.error_message, user_id); }
-  if (!new_book) { return failure(ERR.INVALID_FORMAT, "Invalid Book Data Supplied"); }
+  if (!user.success) { throw new BS_Error(BS_Error.user.error_code, user.error_message, user_id); }
+  if (!new_book) { throw new BS_Error(BS_Error.ERR.INVALID_FORMAT, "Invalid Book Data Supplied"); }
   new_book.user_id = oid;
 
   // Verify necessary parameters are included
-  if (!new_book.title || !new_book.authors) { return failure(ERR.MISSING_DATA, "Missing required Book Data (Title or Authors)"); }
+  if (!new_book.title || !new_book.authors) { throw new BS_Error(BS_Error.ERR.MISSING_DATA, "Missing required Book Data (Title or Authors)"); }
 
   // Check for duplicate unique identifiers (ISBN)
   if (new_book.isbn_10) {
     duplicate = await books.findOne({ isbn_10: new_book.isbn_10 })
-    if (duplicate) { return failure(ERR.DUPLICATE_DATA, "Duplicate ISBN-10"); }
+    if (duplicate) { throw new BS_Error(BS_Error.ERR.DUPLICATE_DATA, "Duplicate ISBN-10"); }
   }
   if (new_book.isbn_13) {
     duplicate = await books.findOne({ isbn_13: new_book.isbn_13 })
-    if (duplicate) { return failure(ERR.DUPLICATE_DATA, "Duplicate ISBN-13"); }
+    if (duplicate) { throw new BS_Error(BS_Error.ERR.DUPLICATE_DATA, "Duplicate ISBN-13"); }
   }
 
   // Insert book
   try { return success(await books.insertOne(new_book).then((res) => { return res.insertedId; })) }
-  catch (err) { return failure(ERR.UNKNOWN, "Error inserting Book"); }
+  catch (err) { throw new BS_Error(BS_Error.ERR.UNKNOWN, "Error inserting Book"); }
 }
 
 /** update_book
@@ -59,12 +59,12 @@ async function update_book(user_id, book_id, updated_book_values) {
   const sanitized_updates = sanitize_book(updated_book_values);
   const u_id = get_ObjectID(user_id);
   const book = get_data(await get_book(book_id));
-  if (!book) { return failure(ERR.DATA_NOT_FOUND, "Book not Found"); }
+  if (!book) { throw new BS_Error(BS_Error.ERR.DATA_NOT_FOUND, "Book not Found"); }
   const owner = book.user_id;
   let sub_result;
 
   // Error on invalid params
-  if (!(u_id && sanitized_updates)) { return failure(ERR.INVALID_FORMAT, "Invalid Parameter(s)"); }
+  if (!(u_id && sanitized_updates)) { throw new BS_Error(BS_Error.ERR.INVALID_FORMAT, "Invalid Parameter(s)"); }
 
   // Check duplicated Data
   if (sanitized_updates.isbn_10) {
@@ -95,7 +95,7 @@ async function update_book(user_id, book_id, updated_book_values) {
   // Check user validity of request
   if (!(owner.equals(u_id))) {
     let user_ver = get_data(await get_level(user_id));
-    if (!(user_ver == "admin")) { return failure(ERR.UNAUTHORIZED, "User not authorized to edit this book"); }
+    if (!(user_ver == "admin")) { throw new BS_Error(BS_Error.ERR.UNAUTHORIZED, "User not authorized to edit this book"); }
   }
 
 
@@ -103,7 +103,7 @@ async function update_book(user_id, book_id, updated_book_values) {
   // Process Updates
   const result = await books.updateOne({ _id: book._id }, { $set: sanitized_updates });
   if (result.modifiedCount > 0) { return success(result.modifiedCount); }
-  return failure(ERR.UNKNOWN, "No Updates Processed");
+  throw new BS_Error(BS_Error.ERR.UNKNOWN, "No Updates Processed");
 }
 
 /** update_book_owner
@@ -119,10 +119,10 @@ async function update_book_owner(book_id, current_user, new_username) {
   const books = db.collection("books");
   let request_validated = false;
   const new_user = get_data(await get_user(new_username));
-  if (!new_user) { return failure(ERR.DATA_NOT_FOUND, "Invalid New User"); }
+  if (!new_user) { throw new BS_Error(BS_Error.ERR.DATA_NOT_FOUND, "Invalid New User"); }
   const new_id = new_user._id;
   const book = get_data(await get_book(book_id));
-  if (!book) { return failure(ERR.DATA_NOT_FOUND, "Invalid Book"); }
+  if (!book) { throw new BS_Error(BS_Error.ERR.DATA_NOT_FOUND, "Invalid Book"); }
   const bo_id = get_ObjectID(book_id);
   const book_owner = book.user_id;
   const user_level = get_data(await get_level(current_user));
@@ -130,12 +130,12 @@ async function update_book_owner(book_id, current_user, new_username) {
   // Request Validation
   if (user_level == "admin") { request_validated = true; }
   if (current_user == book_owner) { request_validated = true; }
-  if (!request_validated) { return failure(ERR.UNAUTHORIZED, "Invalid User, must be book owner or an admin"); }
+  if (!request_validated) { throw new BS_Error(BS_Error.ERR.UNAUTHORIZED, "Invalid User, must be book owner or an admin"); }
 
   // Update Book
   const book_update_result = await books.updateOne({ _id: bo_id }, { $set: { user_id: new_id } });
   if (book_update_result.modifiedCount) { return success(book_update_result.modifiedCount); }
-  return failure(ERR.UNKNOWN, "Error updating book owner", {
+  throw new BS_Error(BS_Error.ERR.UNKNOWN, "Error updating book owner", {
     new_id: new_id,
     book: book,
 
@@ -156,7 +156,7 @@ async function delete_book(user_id, book_id) {
   const db = await mdb_connect();
   const books = db.collection("books");
   const book = get_data(await get_book(book_id));
-  if (!book) { return failure(ERR.DATA_NOT_FOUND, "Book Not Found"); }
+  if (!book) { throw new BS_Error(BS_Error.ERR.DATA_NOT_FOUND, "Book Not Found"); }
   const bo_id = get_ObjectID(book_id);
   const user_level = get_data(await get_level(user_id));
   const owner = book.user_id;
@@ -165,14 +165,14 @@ async function delete_book(user_id, book_id) {
   // Identity Verification
   if (!(owner.equals(uo_id))) {
     if (!(user_level == "admin")) {
-      return failure(ERR.UNAUTHORIZED);
+      throw new BS_Error(BS_Error.ERR.UNAUTHORIZED);
     }
   }
 
   // Delete
   const result = await books.deleteOne({ _id: bo_id });
   if (result.deletedCount > 0) { return success(result.deletedCount); }
-  return failure(ERR.UNKNOWN, "No Books Deleted");
+  throw new BS_Error(BS_Error.ERR.UNKNOWN, "No Books Deleted");
 }
 
 /** get_book
@@ -187,12 +187,12 @@ async function get_book(book_id) {
   const obj_id = get_ObjectID(book_id);
 
   // Verify ID
-  if (!obj_id) { return failure(ERR.INVALID_OBJECT, "Invalid Book ID"); }
+  if (!obj_id) { throw new BS_Error(BS_Error.ERR.INVALID_OBJECT, "Invalid Book ID"); }
 
   // Get Book
   const book = await books.findOne({ _id: obj_id });
   if (book) { return success(book); }
-  return failure(ERR.DATA_NOT_FOUND);
+  throw new BS_Error(BS_Error.ERR.DATA_NOT_FOUND);
 }
 
 /** get_books
@@ -220,9 +220,9 @@ async function get_books(fields = null, limit = 0, sort_field = "title", ascendi
 
   // Verify data or default
   if (!fields) { fields = ["all"]; }
-  if (fields && !(fields instanceof Array)) { return failure(ERR.INVALID_FORMAT, "Invalid fields format applied"); }
+  if (fields && !(fields instanceof Array)) { throw new BS_Error(BS_Error.ERR.INVALID_FORMAT, "Invalid fields format applied"); }
   else if (fields.includes("all")) { fields = book_fields.slice(); }
-  if (limit && (Number(limit) == NaN || Number(limit < 0))) { return failure(ERR.INVALID_FORMAT, "Invalid limit supplied"); }
+  if (limit && (Number(limit) == NaN || Number(limit < 0))) { throw new BS_Error(BS_Error.ERR.INVALID_FORMAT, "Invalid limit supplied"); }
   if (!book_fields.includes(sort_field)) { sort_field = "title"; }
   if (ascending) { sort_option[sort_field] = 1; }
   else { sort_option[sort_field] = -1; } // Descending
@@ -236,7 +236,7 @@ async function get_books(fields = null, limit = 0, sort_field = "title", ascendi
 
   // Fetch Data
   const response = await books.find({}, find_options).sort(sort_option).toArray();
-  if (!response.length) { return failure(ERR.DATA_NOT_FOUND, "No Results", response); }
+  if (!response.length) { throw new BS_Error(BS_Error.ERR.DATA_NOT_FOUND, "No Results", response); }
 
   // Return payload
   return success(response)
@@ -263,7 +263,7 @@ async function search_books(search_term) {
   let response = {};
 
   // Verify Search Term
-  if (!(typeof search_term === "string")) { return failure(ERR.INVALID_FORMAT, "Search term is not a string"); }
+  if (!(typeof search_term === "string")) { throw new BS_Error(BS_Error.ERR.INVALID_FORMAT, "Search term is not a string"); }
 
   // Build Query
   for (let i = 0; i < book_fields.length; i++) {
@@ -277,7 +277,7 @@ async function search_books(search_term) {
 
   // Count of books before getting a cursor for the books
   response.document_count = await books.countDocuments(query);
-  if (response.document_count == 0) { return failure(ERR.DATA_NOT_FOUND); }
+  if (response.document_count == 0) { throw new BS_Error(BS_Error.ERR.DATA_NOT_FOUND); }
 
 
   // Find matching books
@@ -299,7 +299,7 @@ async function find_books(search_book, exact = false) {
   const books = db.collection("books")
   const sanitized_book = sanitize_book(search_book);
   let response = {};
-  if (!sanitized_book) { return failure(ERR.INVALID_FORMAT, "Invalid search book"); }
+  if (!sanitized_book) { throw new BS_Error(BS_Error.ERR.INVALID_FORMAT, "Invalid search book"); }
 
   if (!exact) {
     for (const key in sanitized_book) {
