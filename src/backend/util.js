@@ -54,7 +54,7 @@ class BS_Error extends Error {
     super(params);
     if (BS_Error.error_messages.get(Number(error_code))) { this.error_code = Number(error_code); }
     if (message) { this.message = String(message); }
-    else { this.error_message = BS_Error.error_messages.get(this.error_code); }
+    else { this.message = BS_Error.error_messages.get(this.error_code); }
     if (error_data) { this.error_data = error_data; }
     this.timestamp = new Date();
   }
