@@ -41,9 +41,24 @@ const error_messages = new Map(); {
  * @returns {Db} A Database instance for MongoDB
  */
 async function mdb_connect() {
+  let con_tries = 0;
   if (!db_connection) {
-    await client.connect();
-    db_connection = client.db('');
+    while (con_tries < 5) {
+      con_tries++;
+      try {
+        console.log("DB Connection attempt #" + con_tries);
+        await client.connect();
+        db_connection = client.db('');
+        console.log("Connected to DB");
+        return db_connection;
+      }
+      catch (err) {
+        console.log("Attempt #" + con_tries + " Failed. . .");
+      }
+    }
+    // Attempts failed, crash
+    console.log("Attempts to connect to database failed, throwing . . .");
+    throw Error("Cannot Connect to MongoDB");
   }
   return db_connection;
 }

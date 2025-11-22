@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Stores home library information",
   "main": "index.js",
+  "type":"module",
   "scripts": {
     "test": "set NODE_ENV=test&&node test.js",
     "test_menu": "set NODE_ENV=test&&node menu_test.js",
