@@ -1,7 +1,6 @@
 import dotenv from "dotenv"
-import { mdb_connect } from "./util.js";
 import bcrypt from "bcrypt";
-import { ERR, failure, get_ObjectID, success } from "./util.js";
+import { BS_Error, mdb_connect, failure, get_ObjectID, success } from "./util.js";
 const envpath = `.env${process.env.NODE_ENV || ""}`;
 dotenv.config({ path: envpath })
 
@@ -22,23 +21,16 @@ async function register_user(username, email, password) {
   const db = await mdb_connect(); // Database connection
   const users = db.collection("users"); // User table
   const libraries = db.collection("libraries"); // Library Table
-  let err_msg = ""; // Return message in payload on error
-  let invalid_registration = false; // For checking to send back invalid response
   const c_date = new Date(); // Creation Timestamp
 
   // Legal entry checks
-  if (!username.match(username_regex)) { err_msg = "Username contains illegal characters or length is invalid"; invalid_registration = true; }
-  if (!email.match(email_regex)) { err_msg = "Email is invalid"; invalid_registration = true; }
-  if (!password.match(pass_regex)) { err_msg = "Password does not meet length or complexity requirements"; invalid_registration = true; }
-
-  if (invalid_registration) { return failure(ERR.INVALID_FORMAT, err_msg); }
+  if (!username.match(username_regex)) { throw new BS_Error(BS_Error.ERR.INVALID_FORMAT, "Username contains illegal characters or length is invalid");}
+  if (!email.match(email_regex)) { throw new BS_Error(BS_Error.ERR.INVALID_FORMAT, "Email is invalid");}
+  if (!password.match(pass_regex)) { throw new BS_Error(BS_Error.ERR.INVALID_FORMAT, "Password does not meet length or complexity requirements");}
 
   // Already in use checks
-  if (await users.findOne({ username: username.toLowerCase() })) { err_msg = "Username in use"; invalid_registration = true; }
-  if (await users.findOne({ email: email.toLowerCase() })) { err_msg = "Email in use"; invalid_registration = true; }
-
-  // Response is illegal, Return
-  if (invalid_registration) { return failure(ERR.DUPLICATE_DATA, err_msg); }
+  if (await users.findOne({ username: username.toLowerCase() })) { throw new BS_Error(BS_Error.ERR.DUPLICATE_DATA, "Username in use");}
+  if (await users.findOne({ email: email.toLowerCase() })) { throw new BS_Error(BS_Error.ERR.DUPLICATE_DATA, "Email in use");}
 
   // Checks complete, insert
   // NOTE TO SELF: Display name is stored seperately due to the size concern 
@@ -73,7 +65,7 @@ async function get_level(user_id) {
   const ob_id = get_ObjectID(user_id);
 
   // Verification
-  if (!ob_id) { return failure(ERR.INVALID_OBJECT); }
+  if (!ob_id) { throw new BS_Error(BS_ERROR.ERR.INVALID_OBJECT); }
 
   // Fetch
   const level = await users.findOne({ _id: ob_id }).then((res) => {
@@ -85,7 +77,7 @@ async function get_level(user_id) {
 
   // Results
   if (level) { return success(level); }
-  return failure(ERR.DATA_NOT_FOUND);
+  throw new BS_Error(BS_ERROR.ERR.DATA_NOT_FOUND);
 }
 
 //TODO update the return to have object rather than just id
@@ -97,7 +89,7 @@ async function get_level(user_id) {
  */
 async function authorize_user(username, password) {
   // Init
-  if (typeof username !== "string" || typeof password != "string") { return failure(ERR.INVALID_FORMAT, "Username/Password must be supplied as strings"); }
+  if (typeof username !== "string" || typeof password != "string") { throw new BS_Error(BS_ERROR.ERR.INVALID_FORMAT, "Username/Password must be supplied as strings"); }
   const isEmail = username.indexOf("@") > 0; // Check if email
   const db = await mdb_connect(); // DB Con
   const users = db.collection("users"); // User Table
@@ -110,11 +102,11 @@ async function authorize_user(username, password) {
 
   // Check Hash
   if (user) { authenticated = await bcrypt.compare(password, user.hashcode); }
-  else { return failure(ERR.DATA_NOT_FOUND, "User not found"); }
+  else { throw new BS_Error(BS_ERROR.ERR.DATA_NOT_FOUND, "User not found"); }
 
   // Return payload
   if (authenticated) { return success(user._id.toString()); }
-  return failure(ERR.UNAUTHORIZED, "Invalid Password");
+  throw new BS_Error(BS_ERROR.ERR.UNAUTHORIZED, "Invalid Password");
 }
 
 /** get_user
@@ -124,7 +116,7 @@ async function authorize_user(username, password) {
  */
 async function get_user(username) {
   // Init
-  if (typeof username !== "string") { return failure(ERR.INVALID_FORMAT, "Username/Email is not a string"); }
+  if (typeof username !== "string") { throw new BS_Error(BS_ERROR.ERR.INVALID_FORMAT, "Username/Email is not a string"); }
   const isEmail = username.indexOf("@") > 0; // Check if email
   const db = await mdb_connect(); // DB Con
   const users = db.collection("users"); // User table
@@ -137,7 +129,7 @@ async function get_user(username) {
 
   // Return Payload
   if (user) { return success(user); }
-  return failure(ERR.DATA_NOT_FOUND, "User Not Found");
+  throw new BS_Error(BS_ERROR.ERR.DATA_NOT_FOUND, "User Not Found");
 }
 
 /** get_user_by_id
@@ -155,11 +147,11 @@ async function get_user_by_id(user_id) {
 
   // Find the User
   if (user_oid) { user = await users.findOne({ _id: user_oid }, { projection: proj }); }
-  else { return failure(ERR.INVALID_OBJECT); }
+  else { throw new BS_Error(BS_ERROR.ERR.INVALID_OBJECT); }
 
   // Return Payload
   if (user) { return success(user); }
-  return failure(ERR.DATA_NOT_FOUND, "User Not Found");
+  throw new BS_Error(BS_ERROR.ERR.DATA_NOT_FOUND, "User Not Found");
 }
 
 /** get_users
@@ -177,7 +169,7 @@ async function get_users() {
 
   // Return Payload
   if (user_col) { return success(user_col); }
-  return failure(ERR.UNKNOWN);
+  throw new BS_Error(BS_ERROR.ERR.UNKNOWN);
 }
 
 //TODO Implement anonymizing
@@ -191,7 +183,7 @@ async function remove_user(user_id) {
   const db = await mdb_connect();
   const users = db.collection("users");
   const obj_id = get_ObjectID(user_id);
-  if (!obj_id) { return failure(ERR.INVALID_OBJECT); }
+  if (!obj_id) { throw new BS_Error(BS_ERROR.ERR.INVALID_OBJECT); }
 
   // TODO Anonymize data once other endpoints are created
 
@@ -200,9 +192,9 @@ async function remove_user(user_id) {
 
   if (result.acknowledged) {
     if (result.deletedCount) { return success(user_id); }
-    else { return failure(ERR.DATA_NOT_FOUND, "No Matching Users"); }
+    else { throw new BS_Error(BS_ERROR.ERR.DATA_NOT_FOUND, "No Matching Users"); }
   }
-  return failure(ERR.UNKNOWN);
+  throw new BS_Error(BS_ERROR.ERR.UNKNOWN);
 }
 
 export {
