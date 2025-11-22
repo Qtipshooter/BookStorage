@@ -2,7 +2,51 @@
 // Quinton Graham
 // Utility functions for Book Storage Program
 
+import dotenv from "dotenv";
+import { MongoClient } from "mongodb";
 import { ObjectId } from "mongodb";
+
+/** DB Setup information **/
+const envpath = `.env.${process.env.NODE_ENV || ""}`;
+dotenv.config({ path: envpath })
+const connection_string = process.env.CONNECTION_STRING + process.env.DATABASE_NAME;
+const client = new MongoClient(connection_string);
+let db_connection = null;
+
+/** Error Setup Information **/
+// Error constants array for readable code rather than magic number codes
+const ERR = {
+  "UNKNOWN": 800,
+  "UNAUTHORIZED": 801,
+  "DUPLICATE_DATA": 802,
+  "INVALID_OBJECT": 803,
+  "DATA_NOT_FOUND": 804,
+  "INVALID_FORMAT": 805,
+  "MISSING_DATA": 806
+}
+
+const error_messages = new Map(); {
+  error_messages.set(800, "Unknown Error")
+  error_messages.set(801, "User is not authorized to perform this action")
+  error_messages.set(802, "Duplicate Unique Identifier supplied")
+  error_messages.set(803, "Invalid Object ID")
+  error_messages.set(804, "No Results")
+  error_messages.set(805, "Invalid Format")
+  error_messages.set(806, "Missing required data");
+}
+
+/** Util Functions **/
+/** mdb_connect
+ * Establishes the connection if not active, and returns the instance.  If active, returns active instance
+ * @returns {Db} A Database instance for MongoDB
+ */
+async function mdb_connect() {
+  if (!db_connection) {
+    await client.connect();
+    db_connection = client.db('');
+  }
+  return db_connection;
+}
 
 /** get_ObjectID
  * Converts strings to ObjectIDs for mongodb
@@ -11,7 +55,7 @@ import { ObjectId } from "mongodb";
  */
 function get_ObjectID(o_id) {
   try {
-    if(o_id instanceof ObjectId) { return o_id; }
+    if (o_id instanceof ObjectId) { return o_id; }
     return ObjectId.createFromHexString(o_id);
   }
   catch (err) {
@@ -177,27 +221,8 @@ function get_data(success_object) {
   return null;
 }
 
-// Error constants array for readable code rather than magic number codes
-const ERR = {
-  "UNKNOWN": 800,
-  "UNAUTHORIZED": 801,
-  "DUPLICATE_DATA": 802,
-  "INVALID_OBJECT": 803,
-  "DATA_NOT_FOUND": 804,
-  "INVALID_FORMAT": 805,
-  "MISSING_DATA": 806
-}
-
-const error_messages = new Map()
-error_messages.set(800, "Unknown Error")
-error_messages.set(801, "User is not authorized to perform this action")
-error_messages.set(802, "Duplicate Unique Identifier supplied")
-error_messages.set(803, "Invalid Object ID")
-error_messages.set(804, "No Results")
-error_messages.set(805, "Invalid Format")
-error_messages.set(806, "Missing required data");
-
 export {
+  mdb_connect,
   get_ObjectID,
   sanitize_book,
   success,

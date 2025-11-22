@@ -1,5 +1,5 @@
 import { test_all } from './src/backend/tests/test_all.js';
-import { mdb_connect } from './src/backend/db_connection.js';
+import { mdb_connect } from './src/backend/util.js';
 import { util_seed_test_database, ask } from './src/backend/tests/util_test.js';
 import { menu_test_books } from './src/backend/tests/test_books.js';
 import { menu_test_users } from './src/backend/tests/test_users.js';
