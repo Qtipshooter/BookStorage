@@ -69,48 +69,22 @@ async function util_seed_test_database() {
 
 /** util_check_test
  * Checks the result of a test
- * @param {Object} response
- * @param {boolean} pass_cond
- * @param {number} test_num
+ * @param {Object} message The message for the test logs
+ * @param {boolean} pass_cond Whether the test passed or not
+ * @param {number} test_num Index of test
  * @return {boolean} (Passing or not)
  */
-function util_check_test(response, pass_cond, test_num) {
-  // Init
-  let passing = true;
+function util_check_test(message, pass_cond, test_num) {
   let output = "";
+  if (typeof test_num === "number") { output = "#" + test_num + " "; }
 
-  if (typeof test_num === "number") {
-    output = "#" + test_num + " ";
-  }
+  if (pass_cond) { output = output + util_test_result_code("pass"); }
+  else { output = output + util_test_result_code("fail"); }
 
-  try {
-    if (response.success == pass_cond) {
-      output = output + util_test_result_code("pass") + " ";
-    }
-    else {
-      passing = false;
-      output = output + util_test_result_code("fail") + " ";
-    }
-
-    if (response.success) {
-      output = output + "Data: " + JSON.stringify(response.data);
-    }
-    else {
-      output = output + "Error " + response.error_code + ": " + response.error_message;
-    }
-
-    if (!passing) {
-      output = output + "\n\tData: " + JSON.stringify(response);
-    }
-  }
-  catch (err) {
-    if (!err.name === "TypeError") {
-      console.log("Error: " + err);
-    }
-  }
+  output = output + " " + message;
 
   console.log(output);
-  return passing;
+  return pass_cond;
 }
 
 /** ask

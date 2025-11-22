@@ -3,6 +3,8 @@ import { register_user, get_level, get_user, get_users, remove_user, authorize_u
 import { test_cases_register_user, test_cases_get_level, test_cases_get_user, test_cases_remove_user, test_cases_authorize_user, test_cases_get_user_by_id } from "./test_data.js";
 
 // ------ TEST FUNCTIONS ------ //
+//"Data: " + JSON.stringify(res)
+//e.name + ": " + e.message
 
 async function test_register_user() {
   let passing = true;
@@ -10,9 +12,14 @@ async function test_register_user() {
   // Running Tests
   console.log("-- Testing register_user --");
   for (let i = 0; i < test_cases_register_user.length; i++) {
-    await register_user(test_cases_register_user[i].user, test_cases_register_user[i].email, test_cases_register_user[i].pass).then((res) => {
-      if (!util_check_test(res, test_cases_register_user[i].cond, i + 1)) { passing = false; }
-    });
+    try {
+      await register_user(test_cases_register_user[i].user, test_cases_register_user[i].email, test_cases_register_user[i].pass).then((res) => {
+        if (!util_check_test("Data: " + JSON.stringify(res), test_cases_register_user[i].cond, i)) { passing = false; }
+      })
+    }
+    catch (e) {
+      if (!util_check_test(e.name + ": " + e.message, !test_cases_register_user[i].cond, i)) { passing = false; }
+    }
   }
   console.log("-- Test register_user complete --");
   return passing;
@@ -23,9 +30,14 @@ async function test_get_level() {
 
   console.log("-- Testing get_level --");
   for (let i = 0; i < test_cases_get_level.length; i++) {
-    await get_level(test_cases_get_level[i].user_id).then((res) => {
-      if (!util_check_test(res, test_cases_get_level[i].cond, i + 1)) { passing = false; }
-    });
+    try {
+      await get_level(test_cases_get_level[i].user_id).then((res) => {
+        if (!util_check_test("Data: " + JSON.stringify(res), test_cases_get_level[i].cond, i)) { passing = false; }
+      })
+    }
+    catch (e) {
+      if (!util_check_test(e.name + ": " + e.message, !test_cases_get_level[i].cond, i)) { passing = false; }
+    }
   }
   console.log("-- Test get_level complete --");
   return passing;
@@ -37,9 +49,14 @@ async function test_get_user() {
   // Running Tests
   console.log("-- Testing get_user --");
   for (let i = 0; i < test_cases_get_user.length; i++) {
-    await get_user(test_cases_get_user[i].username).then((res) => {
-      if (!util_check_test(res, test_cases_get_user[i].cond, i + 1)) { passing = false; }
-    });
+    try {
+      await get_user(test_cases_get_user[i].username).then((res) => {
+        if (!util_check_test("Data: " + JSON.stringify(res), test_cases_get_user[i].cond, i + 1)) { passing = false; }
+      });
+    }
+    catch (e) {
+      if (!util_check_test(e.name + ": " + e.message, !test_cases_get_user[i].cond, i + 1)) { passing = false; }
+    }
   }
   console.log("-- Test get_user complete --");
   return passing;
@@ -49,7 +66,12 @@ async function test_get_users() {
   let passing = true;
 
   console.log("-- Testing get_users --");
-  passing = await get_users().then((res) => { return util_check_test(res, true) });
+  try {
+    passing = await get_users().then((res) => { return util_check_test("Data: " + JSON.stringify(res), true) });
+  }
+  catch (e) {
+    passing = util_check_test(e.name + ": " + e.message, false);
+  }
   console.log("-- Test get_users complete --");
   return passing;
 }
@@ -60,9 +82,14 @@ async function test_remove_user() {
   // Running Tests
   console.log("-- Testing remove_user --");
   for (let i = 0; i < test_cases_remove_user.length; i++) {
-    await remove_user(test_cases_remove_user[i].user_id).then((res) => {
-      if (!util_check_test(res, test_cases_remove_user[i].cond, i + 1)) { passing = false; }
-    });
+    try {
+      await remove_user(test_cases_remove_user[i].user_id).then((res) => {
+        if (!util_check_test("Data: " + JSON.stringify(res), test_cases_remove_user[i].cond, i + 1)) { passing = false; }
+      });
+    }
+    catch (e) {
+      if (!util_check_test(e.name + ": " + e.message, !test_cases_remove_user[i].cond, i + 1)) { passing = false; }
+    }
   }
   console.log("-- Test remove_user complete --");
 
@@ -75,9 +102,14 @@ async function test_authorize_user() {
 
   console.log("-- Testing authorize_user --");
   for (let i = 0; i < test_cases_authorize_user.length; i++) {
-    await authorize_user(test_cases_authorize_user[i].username, test_cases_authorize_user[i].password).then((res) => {
-      if (!util_check_test(res, test_cases_authorize_user[i].cond, i + 1)) { passing = false; }
-    });
+    try {
+      await authorize_user(test_cases_authorize_user[i].username, test_cases_authorize_user[i].password).then((res) => {
+        if (!util_check_test("Data: " + JSON.stringify(res), test_cases_authorize_user[i].cond, i + 1)) { passing = false; }
+      });
+    }
+    catch (e) {
+      if (!util_check_test(e.name + ": " + e.message, !test_cases_authorize_user[i].cond, i + 1)) { passing = false; }
+    }
   }
   console.log("-- Test authorize_user complete --");
   return passing;
@@ -88,9 +120,14 @@ async function test_get_user_by_id() {
 
   console.log("-- Testing get_user_by_id --");
   for (let i = 0; i < test_cases_get_user_by_id.length; i++) {
-    await get_user_by_id(test_cases_get_user_by_id[i].user_id).then((res) => {
-      if (!util_check_test(res, test_cases_get_user_by_id[i].cond, i)) { passing = false; }
-    });
+    try {
+      await get_user_by_id(test_cases_get_user_by_id[i].user_id).then((res) => {
+        if (!util_check_test("Data: " + JSON.stringify(res), test_cases_get_user_by_id[i].cond, i)) { passing = false; }
+      });
+    }
+    catch (e) {
+      if (!util_check_test(e.name + ": " + e.message, !test_cases_get_user_by_id[i].cond, i)) { passing = false; }
+    }
   }
   console.log("-- Test get_user_by_id complete --");
   return passing;
