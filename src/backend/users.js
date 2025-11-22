@@ -65,7 +65,7 @@ async function get_level(user_id) {
   const ob_id = get_ObjectID(user_id);
 
   // Verification
-  if (!ob_id) { throw new BS_Error(BS_ERROR.ERR.INVALID_OBJECT); }
+  if (!ob_id) { throw new BS_Error(BS_Error.ERR.INVALID_OBJECT); }
 
   // Fetch
   const level = await users.findOne({ _id: ob_id }).then((res) => {
@@ -77,7 +77,7 @@ async function get_level(user_id) {
 
   // Results
   if (level) { return success(level); }
-  throw new BS_Error(BS_ERROR.ERR.DATA_NOT_FOUND);
+  throw new BS_Error(BS_Error.ERR.DATA_NOT_FOUND);
 }
 
 //TODO update the return to have object rather than just id
@@ -89,7 +89,7 @@ async function get_level(user_id) {
  */
 async function authorize_user(username, password) {
   // Init
-  if (typeof username !== "string" || typeof password != "string") { throw new BS_Error(BS_ERROR.ERR.INVALID_FORMAT, "Username/Password must be supplied as strings"); }
+  if (typeof username !== "string" || typeof password != "string") { throw new BS_Error(BS_Error.ERR.INVALID_FORMAT, "Username/Password must be supplied as strings"); }
   const isEmail = username.indexOf("@") > 0; // Check if email
   const db = await mdb_connect(); // DB Con
   const users = db.collection("users"); // User Table
@@ -102,11 +102,11 @@ async function authorize_user(username, password) {
 
   // Check Hash
   if (user) { authenticated = await bcrypt.compare(password, user.hashcode); }
-  else { throw new BS_Error(BS_ERROR.ERR.DATA_NOT_FOUND, "User not found"); }
+  else { throw new BS_Error(BS_Error.ERR.DATA_NOT_FOUND, "User not found"); }
 
   // Return payload
   if (authenticated) { return success(user._id.toString()); }
-  throw new BS_Error(BS_ERROR.ERR.UNAUTHORIZED, "Invalid Password");
+  throw new BS_Error(BS_Error.ERR.UNAUTHORIZED, "Invalid Password");
 }
 
 /** get_user
@@ -116,7 +116,7 @@ async function authorize_user(username, password) {
  */
 async function get_user(username) {
   // Init
-  if (typeof username !== "string") { throw new BS_Error(BS_ERROR.ERR.INVALID_FORMAT, "Username/Email is not a string"); }
+  if (typeof username !== "string") { throw new BS_Error(BS_Error.ERR.INVALID_FORMAT, "Username/Email is not a string"); }
   const isEmail = username.indexOf("@") > 0; // Check if email
   const db = await mdb_connect(); // DB Con
   const users = db.collection("users"); // User table
@@ -129,7 +129,7 @@ async function get_user(username) {
 
   // Return Payload
   if (user) { return success(user); }
-  throw new BS_Error(BS_ERROR.ERR.DATA_NOT_FOUND, "User Not Found");
+  throw new BS_Error(BS_Error.ERR.DATA_NOT_FOUND, "User Not Found");
 }
 
 /** get_user_by_id
@@ -147,11 +147,11 @@ async function get_user_by_id(user_id) {
 
   // Find the User
   if (user_oid) { user = await users.findOne({ _id: user_oid }, { projection: proj }); }
-  else { throw new BS_Error(BS_ERROR.ERR.INVALID_OBJECT); }
+  else { throw new BS_Error(BS_Error.ERR.INVALID_OBJECT); }
 
   // Return Payload
   if (user) { return success(user); }
-  throw new BS_Error(BS_ERROR.ERR.DATA_NOT_FOUND, "User Not Found");
+  throw new BS_Error(BS_Error.ERR.DATA_NOT_FOUND, "User Not Found");
 }
 
 /** get_users
@@ -169,7 +169,7 @@ async function get_users() {
 
   // Return Payload
   if (user_col) { return success(user_col); }
-  throw new BS_Error(BS_ERROR.ERR.UNKNOWN);
+  throw new BS_Error(BS_Error.ERR.UNKNOWN);
 }
 
 //TODO Implement anonymizing
@@ -183,7 +183,7 @@ async function remove_user(user_id) {
   const db = await mdb_connect();
   const users = db.collection("users");
   const obj_id = get_ObjectID(user_id);
-  if (!obj_id) { throw new BS_Error(BS_ERROR.ERR.INVALID_OBJECT); }
+  if (!obj_id) { throw new BS_Error(BS_Error.ERR.INVALID_OBJECT); }
 
   // TODO Anonymize data once other endpoints are created
 
@@ -192,9 +192,9 @@ async function remove_user(user_id) {
 
   if (result.acknowledged) {
     if (result.deletedCount) { return success(user_id); }
-    else { throw new BS_Error(BS_ERROR.ERR.DATA_NOT_FOUND, "No Matching Users"); }
+    else { throw new BS_Error(BS_Error.ERR.DATA_NOT_FOUND, "No Matching Users"); }
   }
-  throw new BS_Error(BS_ERROR.ERR.UNKNOWN);
+  throw new BS_Error(BS_Error.ERR.UNKNOWN);
 }
 
 export {
