@@ -1,5 +1,5 @@
 import { util_check_test, ask, util_test_result_code } from "./util_test.js";
-import { register_user, get_level, get_user, get_users, remove_user, authorize_user, get_user_by_id } from "../api/users.js";
+import { register_user, get_level, get_user, get_users, remove_user, authorize_user, get_user_by_id } from "../users.js";
 import { test_cases_register_user, test_cases_get_level, test_cases_get_user, test_cases_remove_user, test_cases_authorize_user, test_cases_get_user_by_id } from "./test_data.js";
 
 // ------ TEST FUNCTIONS ------ //

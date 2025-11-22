@@ -1,4 +1,4 @@
-import { get_library, search_library, add_to_library, remove_from_library, delete_user_library, admin_remove_from_all_libraries, } from "../api/libraries.js";
+import { get_library, search_library, add_to_library, remove_from_library, delete_user_library, admin_remove_from_all_libraries, } from "../libraries.js";
 import { ask } from "./util_test.js";
 
 

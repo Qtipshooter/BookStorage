@@ -2,7 +2,7 @@ import { createInterface } from 'node:readline';
 import bcrypt from "bcrypt";
 import dotenv from "dotenv"
 import { MongoClient } from "mongodb";
-import { get_ObjectID } from "../api/util.js";
+import { get_ObjectID } from "../util.js";
 import { test_init_books, test_init_users, test_init_libraries } from './test_data.js';
 dotenv.config({ path: ".env.test" });
 

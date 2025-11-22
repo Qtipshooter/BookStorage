@@ -1,6 +1,6 @@
 // test_cases.js
 // Quinton Graham
-import { get_ObjectID } from "../api/util.js";
+import { get_ObjectID } from "../util.js";
 import bcrypt from "bcrypt";
 const passes = Number(process.env.HASH_PASSES);
 const create_date = new Date();

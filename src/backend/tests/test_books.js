@@ -2,9 +2,9 @@
 // Quinton Graham
 // Tests the books.js functions
 
-import { add_book, update_book, update_book_owner, delete_book, get_book, get_books, search_books } from "../api/books.js";
-import { get_user } from "../api/users.js";
-import { get_ObjectID } from "../api/util.js";
+import { add_book, update_book, update_book_owner, delete_book, get_book, get_books, search_books } from "../books.js";
+import { get_user } from "../users.js";
+import { get_ObjectID } from "../util.js";
 import { util_check_test, ask, util_test_result_code } from "./util_test.js";
 import { test_cases_add_book, test_cases_update_book, test_cases_update_book_owner, test_cases_delete_book, test_cases_get_book, test_cases_get_books, test_cases_search_books, } from "./test_data.js";
 
