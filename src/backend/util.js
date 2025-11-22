@@ -7,32 +7,57 @@ import { MongoClient } from "mongodb";
 import { ObjectId } from "mongodb";
 
 /** DB Setup information **/
-const envpath = `.env.${process.env.NODE_ENV || ""}`;
+const envpath = `.env${process.env.NODE_ENV ? "." + process.env.NODE_ENV : ""}`;
 dotenv.config({ path: envpath })
 const connection_string = process.env.CONNECTION_STRING + process.env.DATABASE_NAME;
 const client = new MongoClient(connection_string);
 let db_connection = null;
 
 /** Error Setup Information **/
-// Error constants array for readable code rather than magic number codes
-const ERR = {
-  "UNKNOWN": 800,
-  "UNAUTHORIZED": 801,
-  "DUPLICATE_DATA": 802,
-  "INVALID_OBJECT": 803,
-  "DATA_NOT_FOUND": 804,
-  "INVALID_FORMAT": 805,
-  "MISSING_DATA": 806
-}
+class BS_Error extends Error {
 
-const error_messages = new Map(); {
-  error_messages.set(800, "Unknown Error")
-  error_messages.set(801, "User is not authorized to perform this action")
-  error_messages.set(802, "Duplicate Unique Identifier supplied")
-  error_messages.set(803, "Invalid Object ID")
-  error_messages.set(804, "No Results")
-  error_messages.set(805, "Invalid Format")
-  error_messages.set(806, "Missing required data");
+  // Defaults
+  name = "BS_Error";
+  error_code = 800;
+  message = "Unknown Error";
+  error_data = null;
+  timestamp = null;
+
+  static ERR = {
+    "UNKNOWN": 800,
+    "UNAUTHORIZED": 801,
+    "DUPLICATE_DATA": 802,
+    "INVALID_OBJECT": 803,
+    "DATA_NOT_FOUND": 804,
+    "INVALID_FORMAT": 805,
+    "MISSING_DATA": 806
+  };
+
+  static error_messages = new Map([
+    [800, "Unknown Error"],
+    [801, "User is not authorized to perform this action"],
+    [802, "Duplicate Unique Identifier supplied"],
+    [803, "Invalid Object ID"],
+    [804, "No Results"],
+    [805, "Invalid Format"],
+    [806, "Missing required data"],
+  ]);
+
+  /**
+   * Creates an instance of BS_Error to be thrown.
+   * @param {number} error_code The Error code number identifier, referenced from BS_Error.ERR
+   * @param {string} message Custom Error Message.  If blank, uses default based on error_code.
+   * @param {any} error_data Any Data to be supplied for the error
+   * @param  {...any} params Error class params
+   */
+  constructor(error_code = 800, message = null, error_data = null, ...params) {
+    super(params);
+    if (BS_Error.error_messages.get(Number(error_code))) { this.error_code = Number(error_code); }
+    if (message) { this.message = String(message); }
+    else { this.error_message = BS_Error.error_messages.get(this.error_code); }
+    if (error_data) { this.error_data = error_data; }
+    this.timestamp = new Date();
+  }
 }
 
 /** Util Functions **/
@@ -58,7 +83,7 @@ async function mdb_connect() {
     }
     // Attempts failed, crash
     console.log("Attempts to connect to database failed, throwing . . .");
-    throw Error("Cannot Connect to MongoDB");
+    throw new Error("Cannot Connect to MongoDB");
   }
   return db_connection;
 }
@@ -237,11 +262,11 @@ function get_data(success_object) {
 }
 
 export {
+  BS_Error,
   mdb_connect,
   get_ObjectID,
   sanitize_book,
   success,
   failure,
   get_data,
-  ERR,
 }
