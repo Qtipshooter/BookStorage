@@ -50,7 +50,7 @@ async function register_user(username, email, password) {
   libraries.insertOne({ user_id: user_id })
 
   // Success Payload
-  return success(user_id);
+  return user_id;
 }
 
 /** get_level
@@ -76,7 +76,7 @@ async function get_level(user_id) {
   })
 
   // Results
-  if (level) { return success(level); }
+  if (level) { return level; }
   throw new BS_Error(BS_Error.ERR.DATA_NOT_FOUND);
 }
 
@@ -105,7 +105,7 @@ async function authorize_user(username, password) {
   else { throw new BS_Error(BS_Error.ERR.DATA_NOT_FOUND, "User not found"); }
 
   // Return payload
-  if (authenticated) { return success(user._id.toString()); }
+  if (authenticated) { return user._id.toString(); }
   throw new BS_Error(BS_Error.ERR.UNAUTHORIZED, "Invalid Password");
 }
 
@@ -128,7 +128,7 @@ async function get_user(username) {
   else { user = await users.findOne({ username: username.toLowerCase() }, { projection: proj }) }
 
   // Return Payload
-  if (user) { return success(user); }
+  if (user) { return user; }
   throw new BS_Error(BS_Error.ERR.DATA_NOT_FOUND, "User Not Found");
 }
 
@@ -150,7 +150,7 @@ async function get_user_by_id(user_id) {
   else { throw new BS_Error(BS_Error.ERR.INVALID_OBJECT); }
 
   // Return Payload
-  if (user) { return success(user); }
+  if (user) { return user; }
   throw new BS_Error(BS_Error.ERR.DATA_NOT_FOUND, "User Not Found");
 }
 
@@ -168,7 +168,7 @@ async function get_users() {
   const user_col = await users.find({}, { projection: { hashcode: 0 } }).toArray();
 
   // Return Payload
-  if (user_col) { return success(user_col); }
+  if (user_col) { return user_col; }
   throw new BS_Error(BS_Error.ERR.UNKNOWN);
 }
 
@@ -191,7 +191,7 @@ async function remove_user(user_id) {
   const result = await users.deleteOne({ _id: obj_id });
 
   if (result.acknowledged) {
-    if (result.deletedCount) { return success(user_id); }
+    if (result.deletedCount) { return user_id; }
     else { throw new BS_Error(BS_Error.ERR.DATA_NOT_FOUND, "No Matching Users"); }
   }
   throw new BS_Error(BS_Error.ERR.UNKNOWN);

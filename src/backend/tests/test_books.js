@@ -3,8 +3,6 @@
 // Tests the books.js functions
 
 import { add_book, update_book, update_book_owner, delete_book, get_book, get_books, search_books } from "../books.js";
-import { get_user } from "../users.js";
-import { get_ObjectID } from "../util.js";
 import { util_check_test, ask, util_test_result_code } from "./util_test.js";
 import { test_cases_add_book, test_cases_update_book, test_cases_update_book_owner, test_cases_delete_book, test_cases_get_book, test_cases_get_books, test_cases_search_books, } from "./test_data.js";
 
@@ -16,12 +14,16 @@ async function test_add_book() {
   // Run Tests
   console.log("-- Testing add_book --");
   for (let i = 0; i < test_cases_add_book.length; i++) {
-    await add_book(test_cases_add_book[i].user_id, test_cases_add_book[i].book).then((res) => {
-      if (!util_check_test(res, test_cases_add_book[i].cond, i + 1)) { passing = false; }
-    });
+    try {
+      await add_book(test_cases_add_book[i].user_id, test_cases_add_book[i].book).then((res) => {
+        if (!util_check_test("Data: " + JSON.stringify(res), test_cases_add_book[i].cond, i + 1)) { passing = false; }
+      });
+    }
+    catch (e) {
+      if (!util_check_test(e.name + ": " + e.message, !test_cases_add_book[i].cond, i + 1)) { passing = false; }
+    }
   }
   console.log("-- Test add_book complete --");
-  // Return output
   return passing;
 }
 
@@ -31,9 +33,14 @@ async function test_update_book() {
   // Run Tests
   console.log("-- Testing update_book --");
   for (let i = 0; i < test_cases_update_book.length; i++) {
-    await update_book(test_cases_update_book[i].user_id, test_cases_update_book[i].book_id, test_cases_update_book[i].updates).then((res) => {
-      if (!util_check_test(res, test_cases_update_book[i].cond, i)) { passing = false; }
-    });
+    try {
+      await update_book(test_cases_update_book[i].user_id, test_cases_update_book[i].book_id, test_cases_update_book[i].updates).then((res) => {
+        if (!util_check_test("Data: " + JSON.stringify(res), test_cases_update_book[i].cond, i)) { passing = false; }
+      });
+    }
+    catch (e) {
+      if (!util_check_test(e.name + ": " + e.message, !test_cases_update_book[i].cond, i)) { passing = false; }
+    }
   }
   console.log("-- Test update_book complete --");
   return passing;
@@ -45,9 +52,14 @@ async function test_update_book_owner() {
   // Run Tests
   console.log("-- Testing update_book_owner --");
   for (let i = 0; i < test_cases_update_book_owner.length; i++) {
-    await update_book_owner(test_cases_update_book_owner[i].book_id, test_cases_update_book_owner[i].authorizing_user_id, test_cases_update_book_owner[i].new_user_id).then((res) => {
-      if (!util_check_test(res, test_cases_update_book_owner[i].cond, i)) { passing = false; }
-    });
+    try {
+      await update_book_owner(test_cases_update_book_owner[i].book_id, test_cases_update_book_owner[i].authorizing_user_id, test_cases_update_book_owner[i].new_user_id).then((res) => {
+        if (!util_check_test("Data: " + JSON.stringify(res), test_cases_update_book_owner[i].cond, i)) { passing = false; }
+      });
+    }
+    catch (e) {
+      if (!util_check_test(e.name + ": " + e.message, !test_cases_update_book_owner[i].cond, i)) { passing = false; }
+    }
   }
   console.log("-- Test update_book_owner complete --");
   return passing;
@@ -59,9 +71,14 @@ async function test_delete_book() {
   // Run Tests
   console.log("-- Testing delete_book --");
   for (let i = 0; i < test_cases_delete_book.length; i++) {
-    await delete_book(test_cases_delete_book[i].user_id, test_cases_delete_book[i].book_id).then((res) => {
-      if (!util_check_test(res, test_cases_delete_book[i].cond, i)) { passing = false; }
-    });
+    try {
+      await delete_book(test_cases_delete_book[i].user_id, test_cases_delete_book[i].book_id).then((res) => {
+        if (!util_check_test("Data: " + JSON.stringify(res), test_cases_delete_book[i].cond, i)) { passing = false; }
+      });
+    }
+    catch (e) {
+      if (!util_check_test(e.name + ": " + e.message, !test_cases_delete_book[i].cond, i)) { passing = false; }
+    }
   }
   console.log("-- Test delete_book complete --");
   return passing;
@@ -74,9 +91,14 @@ async function test_get_book() {
   // Run Tests
   console.log("-- Testing get_book --");
   for (let i = 0; i < test_cases_get_book.length; i++) {
-    await get_book(test_cases_get_book[i].book_id).then((res) => {
-      if (!util_check_test(res, test_cases_get_book[i].cond, i + 1)) { passing = false; }
-    });
+    try {
+      await get_book(test_cases_get_book[i].book_id).then((res) => {
+        if (!util_check_test("Data: " + JSON.stringify(res), test_cases_get_book[i].cond, i + 1)) { passing = false; }
+      });
+    }
+    catch (e) {
+      if (!util_check_test(e.name + ": " + e.message, !test_cases_get_book[i].cond, i + 1)) { passing = false; }
+    }
   }
   console.log("-- Test get_book complete --");
 
@@ -90,9 +112,14 @@ async function test_get_books() {
   // Run Tests
   console.log("-- Testing get_books --");
   for (let i = 0; i < test_cases_get_books.length; i++) {
-    await get_books().then((res) => {
-      if (!util_check_test(res, test_cases_get_books[i].cond, i)) { passing = false; }
-    });
+    try {
+      await get_books().then((res) => {
+        if (!util_check_test("Data: " + JSON.stringify(res), test_cases_get_books[i].cond, i)) { passing = false; }
+      });
+    }
+    catch (e) {
+      if (!util_check_test(e.name + ": " + e.message, !test_cases_get_books[i].cond, i)) { passing = false; }
+    }
   }
   console.log("-- Test get_books complete --");
   return passing;
@@ -104,9 +131,14 @@ async function test_search_books() {
   // Run Tests
   console.log("-- Testing search_books --");
   for (let i = 0; i < test_cases_search_books.length; i++) {
-    await search_books(test_cases_search_books[i].search_term).then((res) => {
-      if (!util_check_test(res, test_cases_search_books[i].cond, i)) { passing = false; }
-    });
+    try {
+      await search_books(test_cases_search_books[i].search_term).then((res) => {
+        if (!util_check_test("Data: " + JSON.stringify(res), test_cases_search_books[i].cond, i)) { passing = false; }
+      });
+    }
+    catch (e) {
+      if (!util_check_test(e.name + ": " + e.message, !test_cases_search_books[i].cond, i)) { passing = false; }
+    }
   }
   console.log("-- Test search_books complete --");
   return passing;

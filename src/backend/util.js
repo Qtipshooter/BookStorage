@@ -257,6 +257,7 @@ function failure(error_code, custom_error_message = null, error_data = null) {
  * @return {any | null} success_object.data or null if unsuccessful
  */
 function get_data(success_object) {
+  return success_object;
   if (success_object.success) { return success_object.data; }
   return null;
 }
