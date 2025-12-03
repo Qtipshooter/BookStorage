@@ -126,14 +126,18 @@ async function update_book_owner(book_id, current_user, new_username) {
   const db = await mdb_connect();
   const books = db.collection("books");
   let request_validated = false;
-  const new_user = get_data(await get_user(new_username));
-  if (!new_user) { throw new BS_Error(BS_Error.ERR.DATA_NOT_FOUND, "Invalid New User"); }
+  let new_user;
+  try { new_user = await get_user(new_username); }
+  catch (e) { throw new BS_Error(BS_Error.ERR.DATA_NOT_FOUND, "Invalid New User"); }
   const new_id = new_user._id;
-  const book = get_data(await get_book(book_id));
-  if (!book) { throw new BS_Error(BS_Error.ERR.DATA_NOT_FOUND, "Invalid Book"); }
+  let book;
+  try { book = await get_book(book_id); }
+  catch (e) { throw new BS_Error(BS_Error.ERR.DATA_NOT_FOUND, "Invalid Book"); }
   const bo_id = get_ObjectID(book_id);
   const book_owner = book.user_id;
-  const user_level = get_data(await get_level(current_user));
+  let user_level;
+  try { user_level = await get_level(current_user); }
+  catch (e) { user_level = "user"; }
 
   // Request Validation
   if (user_level == "admin") { request_validated = true; }
@@ -163,10 +167,13 @@ async function delete_book(user_id, book_id) {
   // Init
   const db = await mdb_connect();
   const books = db.collection("books");
-  const book = get_data(await get_book(book_id));
-  if (!book) { throw new BS_Error(BS_Error.ERR.DATA_NOT_FOUND, "Book Not Found"); }
+  let book;
+  try { book = await get_book(book_id); }
+  catch (e) { throw new BS_Error(BS_Error.ERR.DATA_NOT_FOUND, "Book Not Found"); }
   const bo_id = get_ObjectID(book_id);
-  const user_level = get_data(await get_level(user_id));
+  let user_level;
+  try { user_level = await get_level(user_id); }
+  catch (e) { user_level = "user"; }
   const owner = book.user_id;
   const uo_id = get_ObjectID(user_id);
 
