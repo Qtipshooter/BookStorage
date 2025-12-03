@@ -3,7 +3,7 @@
 // API endpoints for Book Storage Program
 
 import express from "express";
-import { get_books } from "../../backend/api/books.js";
+import { get_books } from "../backend/books.js";
 
 // Router Configuration
 const router = express.Router();
