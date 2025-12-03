@@ -10,15 +10,9 @@ const router = express.Router();
 
 /** Books API **/
 router.get("/books", async (request, response) => {
-  const books = await get_books().then((res) => {
-    if (res.success) {
-      return res.data;
-    }
-    else {
-      console.log("ERR: /api" + request.url + "\n  Message: " + res.error_message);
-      return null;
-    }
-  });
+  let books;
+  try { books = await get_books(); }
+  catch (e) { console.log("ERR: /api" + request.url + "\n  Message: " + e.error_message); }
 
   if (books) {
     response.set("Content-Type", "application/json");
