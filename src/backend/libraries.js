@@ -1,260 +1,186 @@
 // libraries.js
 // Quinton Graham
 // Library db functions for Book Storage program
-import { mdb_connect } from "./util.js";
-import { get_level } from "./users.js";
-import { BS_Error, get_data, get_ObjectID, success } from "./util.js";
+
+import { mdb_connect, BS_Error, get_ObjectID } from "./util.js";
+
+get_library(library_id)
+get_libraries(user_id)
+add_library(user_id, library_details)
+update_library(library_id, updates)
+delete_library(library_id)
+add_to_library(library_id, book_id)
+remove_from_library(library_id, book_id)
+search_library(library_id, search)
+remove_from_all_libraries(book_id)
 
 
-
-/** get_library
- * Gets a user's library based on ID
- * @param {string} library_id The user to get the library of
- * @return {Promise<Object>} Returns the array of books for this library
+/**
+ * Gets the books in a library by ID
+ * @param {string} library_id The ID of the library to fetch
+ * @param {number} [limit=0] The number of books to fetch (Default to all)
+ * @return {Promise<Object>} The array of books for this library, or null if there is an error fetching them
  */
-async function get_library(library_id) {
+export async function get_library(library_id, limit = 0) {
   // Init
   const db = await mdb_connect();
   const libraries = db.collection("libraries");
   const lo_id = get_ObjectID(library_id);
-  if (!lo_id) { throw new BS_Error(BS_Error.ERR.INVALID_FORMAT, "Invalid library ID"); }
-  const agg = [
-    {
-      '$match': {
-        '_id': lo_id,
-      }
-    },
-    {
-      '$lookup': {
-        'from': 'books',
-        'localField': 'book_ids',
-        'foreignField': '_id',
-        'as': 'books'
-      }
-    },
-    { '$project': { '_id': 0, 'books': 1 } }
-  ]
+  let agg = [];
+  // Verification
+  if (!lo_id) { return null; }
+  if (!(typeof limit == "number" && limit > 0)) { limit = 0; }
+
+  // Aggregation
+  agg.push({ "$match": { "_id": lo_id } });
+  agg.push({
+    "$lookup": {
+      "from": "books",
+      "localField": "book_ids",
+      "foreignField": "_id",
+      "as": "books",
+    }
+  });
+  agg.push({ "$project": { "_id": 0, "books": 1 } });
 
   // Query
-  const response_data = await libraries.aggregate(agg).toArray();
-  if (!response_data.length) {
-    throw new BS_Error(BS_Error.ERR.DATA_NOT_FOUND, "No books in library", response_data);
+  try {
+    const response_data = await libraries.aggregate(agg).toArray();
+    if (!response_data.length) { return null; } // No library found
+    if (!response_data[0].books.length) { return null; } // No books in library
+    return response_data[0].books;
   }
-
-  // Check if there are books, then send books to book query
-  if (response_data[0].books.length) {
-    return success(response_data[0].books);
+  catch (e) {
+    /** @todo Log error information */
+    console.log(e);
+    return null;
   }
-
-  throw new BS_Error(BS_Error.ERR.DATA_NOT_FOUND, "No Books in Library", response_data);
-
 }
 
-/** get_libraries
- * Gets a user's libraries
+/**
+ * Gets all the libraries associated with a user
  * @param {string} user_id The user to get the libraries of
- * @return {Promise<Object>} Returns an array containing the library details (Minus books)
+ * @return {Promise<Object>} An array of the libraries, or null on failure
  */
-async function get_libraries(user_id) {
+export async function get_libraries(user_id) {
   // Init
   const db = await mdb_connect();
   const libraries = db.collection("libraries");
   const uo_id = get_ObjectID(user_id);
-  if (!uo_id) { throw new BS_Error(BS_Error.ERR.INVALID_FORMAT, "Invalid user id"); }
-  const filter = { user_id: uo_id, }
+  if (!uo_id) { return null; }
+  const filter = { user_id: uo_id };
 
-  // Find and return
+  // Find and Return
   const result = await find(filter).toArray();
-  if (!result.length) { throw new BS_Error(BS_Error.ERR.DATA_NOT_FOUND, "No Libraries for User"); }
-  return success(result);
-
+  if (!result.length) { return null; }
+  return result;
 }
 
-
-/** search_library
- * Searches user library with a search criteria
- * @param {string} user_id The user of the library to search in
- * @param {string} search_term The search term to send to search function
- * @return {Promise<Object>} Returns the book(s) in an array
+/**
+ * Adds a new library for the current user
+ * @param {string} user_id The ID of the user for the new library
+ * @param {string} title The name of the new library
+ * @param {string} [desc=""] Description of the new Library
+ * @return {Promise<string>} The id of the newly created library, or null on failure
  */
-async function search_library(library_id, search_term) {
+export async function add_library(user_id, title, desc = "") {
   // Init
   const db = await mdb_connect();
   const libraries = db.collection("libraries");
-  const lo_id = get_ObjectID(library_id);
-  search_term = String(search_term); // Sanitize
-  if (!lo_id) { throw new BS_Error(BS_Error.ERR.INVALID_FORMAT, "Invalid Library ID"); }
-  const agg = [
-    {
-      $match: { _id: lo_id }
-    },
-    {
-      $lookup: {
-        from: "books",
-        localField: "book_ids",
-        foreignField: "_id",
-        as: "books",
-      }
-    },
-    {
-      $project: {
-        books: 1,
-        _id: 0
-      }
-    },
-    {
-      $unwind: "books",
-    },
-    {
-      $replaceRoot: { newRoot: "books" },
-    },
-    {
-      $match: {
-        $or: {
-          "title": {
-            $regex: search_term,
-            $options: "i",
-          },
-          "authors": {
-            $regex: search_term,
-            $options: "i",
-          },
-          "genres": {
-            $regex: search_term,
-            $options: "i",
-          },
-          "description": {
-            $regex: search_term,
-            $options: "i",
-          },
-          "isbn_10": {
-            $regex: search_term,
-            $options: "i",
-          },
-          "isbn_13": {
-            $regex: search_term,
-            $options: "i",
-          },
-        }
+  const uo_id = get_ObjectID(user_id);
 
-      }
-    },
+  // Verification
+  if (!uo_id) { return null; }
+  if (!title || typeof title != "string") { title = "New Library"; }
+  if (desc && typeof desc != "string") { desc = "" }
 
-
-  ]
-
-  // Get Books and Search Books
-  const results = await libraries.aggregate(agg).toArray();
-  if (!results.length) { throw new BS_Error(BS_Error.ERR.DATA_NOT_FOUND, "No Results"); }
-  return success(results);
-}
-
-/** add_to_library
- * Adds a book to the current user library
- * @param {string} library_id User library to add to
- * @param {string} book_id The book to add
- * @return {Promise<Object>} Returns the success/fail state and the update return/error_message
- */
-async function add_to_library(library_id, book_id) {
-  // Init
-  const db = await mdb_connect();
-  const libraries = db.collection("libraries");
-  const books = db.collection("books");
-  const lo_id = get_ObjectID(library_id);
-  const bo_id = get_ObjectID(book_id);
-  if (!(lo_id && bo_id)) { throw new BS_Error(BS_Error.ERR.INVALID_FORMAT, "Invalid library or book"); }
-
-  // Verifiy Existance of library and book, and applicability
-  if (!(await libraries.findOne({ _id: lo_id }) && await books.findOne({ _id: bo_id }))) {
-    throw new BS_Error(BS_Error.ERR.DATA_NOT_FOUND, "Library or Book is invalid");
+  // Insert
+  try {
+    const result = await libraries.insertOne({
+      "user_id": uo_id,
+      "title": title,
+      "description": desc,
+    });
+    return result.insertedId;
   }
-  if ((await libraries.findOne({ _id: lo_id, book_ids: bo_id }))) { throw new BS_Error(BS_Error.ERR.DUPLICATE_DATA, "Book already added to collection"); }
-
-  // Add book
-  const result = await libraries.updateOne({ _id: lo_id }, { $push: { book_ids: bo_id } });
-  if (!result.modifiedCount) { throw new BS_Error(BS_Error.ERR.UNKNOWN, "Document not modified"); }
-  return success(result);
-
-}
-
-/** remove_from_library
- * @param {string} library_id User library to remove from
- * @param {string} book_id The book to remove
- * @return {Promise<Object>} Returns the success/fail state and the book_id/error_message
- */
-async function remove_from_library(library_id, book_id) {
-  // Init
-  const db = await mdb_connect();
-  const libraries = db.collection("libraries");
-  const lo_id = get_ObjectID(library_id);
-  const bo_id = get_ObjectID(book_id);
-  if (!(lo_id && bo_id)) { throw new BS_Error(BS_Error.ERR.INVALID_FORMAT, "Invalid library or book id"); }
-  const filter = { _id: lo_id };
-  const updates = { $pull: { book_ids: bo_id }, };
-
-  // Remove the object from the array
-  const response = await collection.updateOne(filter, updates);
-  if (!response.modifiedCount) { throw new BS_Error(BS_Error.ERR.UNKNOWN, "Book not removed"); }
-  return success(response);
-}
-
-/** delete_user_library
- * @param {string} library_id Library to be removed
- * @param {string} owner_id Owner of library to remove (or admin)
- * @return {Promise<Object>}
- */
-async function delete_user_library(library_id, owner_id) {
-  // Init
-  const db = await mdb_connect();
-  const libraries = db.collection("libraries");
-  const lo_id = get_ObjectID(library_id);
-  const uo_id = get_ObjectID(owner_id);
-
-  // Verify Owner
-  const lib_to_del = await findOne({ _id: lo_id });
-  if (!lib_to_del) { throw new BS_Error(BS_Error.ERR.DATA_NOT_FOUND, "Library does not exist"); }
-  if (!(uo_id.equals(lib_to_del.user_id))) {
-    const user_level = get_data(await get_level(uo_id));
-    if (!user_level == "admin") {
-      throw new BS_Error(BS_Error.ERR.UNAUTHORIZED, "User not authorized to delete this library");
-    }
+  catch (e) {
+    /** @todo Log the error */
+    return null;
   }
-
-  // Delete library
-  const result = libraries.deleteOne({ _id: lo_id });
-  if (!result?.deletedCount) { throw new BS_Error(BS_Error.ERR.UNKNOWN, "Library not deleted", result); }
-  return success(result);
 }
 
-// ADMIN FUNCTIONS //
-
-/** admin_remove_from_all_libraries
- * Removes a book from all libraries in preparation to delete book
- * @param {string} admin_id ID of Authorizing Admin
- * @param {string} book_id ID of book to remove
- * @return {Promise<Object>} Returns the success/fail state and the book_id/error_message
+/**
+ * Updates details for a library
+ * @param {string} library_id The ID of the library to update
+ * @param {Object} updates The updates to make (.title and .description)
+ * @return {Promise<boolean>} true if updates were processed, else false
  */
-async function admin_remove_from_all_libraries(admin_id, book_id) {
+export async function update_library(library_id, updates) {
+  // Init 
+  const db = await mdb_connect();
+  const libraries = db.collection("libraries");
+  const lo_id = get_ObjectID(library_id);
+  const new_title = updates?.title;
+  const new_desc = updates?.description;
+  let updates = {}
+
+  // Verification
+  if (!lo_id) { return false; }
+  if (new_title && typeof new_title == "string") { updates.title = new_title; }
+  if (new_desc && typeof new_desc == "string") { updates.description = new_desc; }
+  if (!(updates.title || updates.description)) { return false; } // No Updates
+
+  // Process Updates
+  const result = await libraries.updateOne({ _id: lo_id }, { "$set": updates });
+  return result.modifiedCount > 0;
+
+}
+
+/**
+ * Deletes a user's library
+ * @param {string} library_id The ID of the library to delete
+ * @returns {Promise<boolean>} true on success, false on failure
+ */
+export async function delete_library(library_id) {
   // Init
   const db = await mdb_connect();
   const libraries = db.collection("libraries");
-  const uo_id = get_ObjectID(admin_id);
-  const bo_id = get_ObjectID(book_id);
+  const lo_id = get_ObjectID(library_id);
 
-  // Verify Admin
-  const user_level = get_data(await get_level(uo_id));
-  if (!user_level == "admin") { throw new BS_Error(BS_Error.ERR.UNAUTHORIZED, "User is not an admin"); }
-
-  // Update libraries
-  return success(await libraries.updateMany({ book_ids: bo_id }, { $pull: { book_ids: bo_id } }));
+  if (!lo_id) { return false; }
+  const result = await libraries.deleteOne({ _id: lo_id });
+  if(result.deletedCount) return true;
+  return false; // Library not found/deleted
 }
 
-export {
-  get_library,
-  get_libraries,
-  search_library,
-  add_to_library,
-  remove_from_library,
-  delete_user_library,
-  admin_remove_from_all_libraries,
-}
+/**
+ * -desc-
+ * -param-
+ * -return-
+ * -throw-
+ */
+export async function add_to_library() { }
+
+/**
+ * -desc-
+ * -param-
+ * -return-
+ * -throw-
+ */
+export async function remove_from_library() { }
+
+/** 
+ * -desc-
+ * -param-
+ * -return-
+ * -throw-
+ */
+export async function search_library() { }
+
+/**
+ * -desc-
+ * -param-
+ * -return-
+ * -throw-
+ */
+export async function remove_from_all_libraries() { }
