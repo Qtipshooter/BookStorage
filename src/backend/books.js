@@ -4,7 +4,7 @@
 
 import { mdb_connect } from "./util.js";
 import { BS_Error, get_ObjectID, sanitize_book, } from "./util.js";
-import { get_level, get_user, get_user_by_id } from "./users.js";
+import { get_user, get_user_by_id } from "./users.js";
 
 /**
  * Adds a book to the database
@@ -70,7 +70,7 @@ export async function update_book(book_id, updated_book_values) {
  * Updates owner for a book to a new user (@todo or blank/default)
  * @param {string} book_id The ID of the book to update
  * @param {string} new_username The username of the new user
- * @return {Promise<>} The updated book
+ * @return {Promise<Object>} The updated book
  * @throws {BS_Error || WriteError || WriteConcernError} Throws if the user is invalid or there is an error inserting the book
  */
 export async function update_book_owner(book_id, new_username) {

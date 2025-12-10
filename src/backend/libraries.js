@@ -149,33 +149,132 @@ export async function delete_library(library_id) {
 
   if (!lo_id) { return false; }
   const result = await libraries.deleteOne({ _id: lo_id });
-  if(result.deletedCount) return true;
-  return false; // Library not found/deleted
+  return result.deletedCount ? true : false;
 }
 
 /**
- * -desc-
- * -param-
- * -return-
- * -throw-
+ * Adds a book to the library
+ * @param {string} library_id The library to add to
+ * @param {string} book_id The book to add
+ * @return {Promise<boolean>} True if book was added, false otherwise (typically already exists)
  */
-export async function add_to_library() { }
+export async function add_to_library(library_id, book_id) {
+  // Init
+  const db = await mdb_connect();
+  const libraries = db.collection("libraries");
+  const lo_id = get_ObjectID(library_id);
+  const bo_id = get_ObjectID(book_id);
+
+  // Verifications
+  if (!(lo_id && bo_id)) { return false; } // Invalid syntax
+  if (!(await libraries.findOne({ _id: lo_id }) && await books.findOne({ _id: bo_id }))) { return false; } // Library or book does not exist
+  if (await libraries.findOne({ _id: lo_id, book_ids: bo_id })) { return false; } // Duplicate
+
+  // Add Book
+  const result = await libraries.updateOne({ _id: lo_id }, { "$push": { book_ids: bo_id } });
+  return result.modifiedCount ? true : false;
+
+}
 
 /**
- * -desc-
- * -param-
- * -return-
- * -throw-
+ * Removes a book from a library
+ * @param {string} library_id The library to remove from
+ * @param {string} book_id The book to remove
+ * @return {Promise<boolean>} True on success, else false
  */
-export async function remove_from_library() { }
+export async function remove_from_library(library_id, book_id) {
+  // Init
+  const db = await mdb_connect();
+  const libraries = db.collection("libraries");
+  const lo_id = get_ObjectID(library_id);
+  const bo_id = get_ObjectID(book_id);
+
+  // Verifications
+  if (!(lo_id && bo_id)) { return false; }
+  if (!(await libraries.findOne({ _id: lo_id }))) { return false; }
+
+  // Removal and Return
+  const result = await libraries.updateOne({ _id: lo_id }, { "$pull": { book_ids: bo_id } });
+  return result.modifiedCount ? true : false;
+
+}
 
 /** 
- * -desc-
- * -param-
- * -return-
- * -throw-
+ * Searches a library for a book containing the text provided
+ * @param {string} library_id The library to search
+ * @param {string} search_term The term to search for
+ * @return {Promise<Object>} An array containing the returned books, null on no results
  */
-export async function search_library() { }
+export async function search_library(library_id, search_term) {
+  // Init
+  const db = await mdb_connect();
+  const libraries = db.collection("libraries");
+  const lo_id = get_ObjectID(library_id);
+
+  // Verifications
+  if (typeof search_term != "string") { return null; }
+  if (!lo_id) {}
+
+  // Agg
+  const agg = [
+    {
+      $match: { _id: lo_id }
+    },
+    {
+      $lookup: {
+        from: "books",
+        localField: "book_ids",
+        foreignField: "_id",
+        as: "books",
+      }
+    },
+    {
+      $project: {
+        books: 1,
+        _id: 0
+      }
+    },
+    {
+      $unwind: "books",
+    },
+    {
+      $replaceRoot: { newRoot: "books" },
+    },
+    {
+      $match: {
+        $or: {
+          "title": {
+            $regex: search_term,
+            $options: "i",
+          },
+          "authors": {
+            $regex: search_term,
+            $options: "i",
+          },
+          "genres": {
+            $regex: search_term,
+            $options: "i",
+          },
+          "description": {
+            $regex: search_term,
+            $options: "i",
+          },
+          "isbn_10": {
+            $regex: search_term,
+            $options: "i",
+          },
+          "isbn_13": {
+            $regex: search_term,
+            $options: "i",
+          },
+        }
+
+      }
+    },
+
+
+  ]
+}
 
 /**
  * -desc-

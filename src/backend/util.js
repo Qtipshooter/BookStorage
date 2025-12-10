@@ -53,6 +53,7 @@ class BS_Error extends Error {
   constructor(error_code = 800, message = null, error_data = null, ...params) {
     super(params);
     if (BS_Error.error_messages.get(Number(error_code))) { this.error_code = Number(error_code); }
+    else { this.error_code = 800 }
     if (message) { this.message = String(message); }
     else { this.message = BS_Error.error_messages.get(this.error_code); }
     if (error_data) { this.error_data = error_data; }
@@ -214,60 +215,9 @@ function sanitize_book(original_book) {
   return new_book;
 }
 
-/** success
- * Shorthand return for success objects
- * @param {any} data Whatever data will be returned in the success object
- * @return {Object} A success object with success = true and data = data
- */
-function success(data) {
-  return {
-    success: true,
-    data: data
-  }
-}
-
-/** failure
- * Shorthand return for failure objects
- * @param {number} error_code Error Code from ERR Array (Reset to ERR.UNKNOWN on unknown code)
- * @param {string} [error_message] The Error to display on failure (default to message provided by error code)
- * @param {any} [error_data] Error data for debugging or troubleshooting
- * @return {Object}
- */
-function failure(error_code, custom_error_message = null, error_data = null) {
-  // Response Object Init
-  let res = {
-    success: false,
-    error_code: ERR.UNKNOWN,
-    error_message: error_messages.get(error_messages.get(ERR.UNKNOWN)),
-  }
-
-  // Param Verification
-  if (error_messages.get(Number(error_code))) { res.error_code = Number(error_code); }
-  if (custom_error_message) { res.error_message = String(custom_error_message); }
-  else { res.error_message = error_messages.get(res.error_code); }
-  if (error_data) { res.error_data = error_data; }
-
-  return res;
-}
-
-/** get_data
- * Checks an object for positive on success, and returns null if not.  Returns data directly if successful
- * Allows the following: api_data = get_data(await api_call()) rather than then chaining
- * @param {Object} success_object Object returned by internal functions
- * @return {any | null} success_object.data or null if unsuccessful
- */
-function get_data(success_object) {
-  return success_object;
-  if (success_object.success) { return success_object.data; }
-  return null;
-}
-
 export {
   BS_Error,
   mdb_connect,
   get_ObjectID,
   sanitize_book,
-  success,
-  failure,
-  get_data,
 }
