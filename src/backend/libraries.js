@@ -199,6 +199,7 @@ export async function remove_from_library(library_id, book_id) {
 
 }
 
+/** @todo Options for length, etc. */
 /** 
  * Searches a library for a book containing the text provided
  * @param {string} library_id The library to search
@@ -213,7 +214,7 @@ export async function search_library(library_id, search_term) {
 
   // Verifications
   if (typeof search_term != "string") { return null; }
-  if (!lo_id) {}
+  if (!lo_id) { return null; }
 
   // Agg
   const agg = [
@@ -271,15 +272,28 @@ export async function search_library(library_id, search_term) {
 
       }
     },
-
-
   ]
+
+  // Search and Return
+  const results = libraries.aggregate(agg).toArray();
+  if (!results.length) { return null; }
+  return results;
 }
 
 /**
- * -desc-
- * -param-
- * -return-
- * -throw-
+ * Removes a book from all libraries containing it
+ * @param {string} book_id The ID of the book to remove
+ * @return {Promise<boolean>} True upon completion, or false on an error
  */
-export async function remove_from_all_libraries() { }
+export async function remove_from_all_libraries(book_id) {
+  // Init
+  const db = await mdb_connect();
+  const libraries = db.collection("libraries");
+  const bo_id = get_ObjectID(book_id);
+  if (!bo_id) { return null; }
+
+  // Deletion
+  const result = await libraries.updateMany({ book_ids: bo_id }, { $pull: { book_ids: bo_id } });
+  if (result.matchedCount == result.modifiedCount) { return true; }
+  return false;
+}
